@@ -1,0 +1,34 @@
+{
+  "model_name": "restoai_food_classifier",
+  "architecture": "EfficientNet-B0",
+  "weights_pretrained": "ImageNet (DEFAULT)",
+  "freeze_policy": "Frozen all; unfroze features.7, features.8, classifier",
+  "num_classes": 9,
+  "class_names": [
+    "fatoush",
+    "fatteh",
+    "fokhara",
+    "kabab",
+    "rawmeat",
+    "sfiha",
+    "taboule",
+    "tannour",
+    "tawook"
+  ],
+  "img_size": 224,
+  "batch_size": 16,
+  "epochs_trained": 30,
+  "best_val_accuracy": 0.8485,
+  "train_samples": 133,
+  "val_samples": 33,
+  "augmentations": [
+    "RandomResizedCrop",
+    "HorizontalFlip",
+    "VerticalFlip",
+    "Rotation30",
+    "ColorJitter",
+    "RandomGrayscale",
+    "RandomErasing"
+  ],
+  "dataset_note": "~15 images/class. Heavy augmentation applied."
+}
