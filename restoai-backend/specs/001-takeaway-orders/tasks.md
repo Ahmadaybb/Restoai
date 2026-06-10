@@ -24,23 +24,23 @@ description: "Dependency-ordered task list for feature 001-takeaway-orders"
 
 **Purpose**: Bring up the skeletal repository, the Docker Compose stack, and the documentation surface that the constitution (Principle VI) requires.
 
-- [ ] T001 Create the `app/` Clean Architecture skeleton (`app/api/`, `app/services/`, `app/repositories/`, `app/domain/`, `app/infra/`, `app/db/`, `app/workers/`, `app/prompts/{en,ar_lb,shared}/`) with empty `__init__.py` files. Layout per plan.md §Project Structure.
-- [ ] T002 [P] Create `pyproject.toml` declaring Python 3.11 and pinning: fastapi, pydantic 2, pydantic-settings, sqlalchemy[asyncio] 2.x, asyncpg, alembic, redis, rq, python-telegram-bot, groq, sentence-transformers, torch (CPU-only index), python-json-logger, joblib, rapidfuzz, pytest, pytest-asyncio, ruff, mypy. Source list: plan.md §Technical Context.
-- [ ] T003 [P] Create `.gitignore` excluding `.env`, `*.sqlite`, `.venv/`, `__pycache__/`, `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `dist/`, and any committed-by-mistake model weights. Principle V §Security & Data Integrity.
-- [ ] T004 [P] Create `.env.example` listing every required key with placeholder values: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_URL`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_WEBHOOK_SECRET_PATH`, `GROQ_API_KEY`, `DATABASE_URL`, `REDIS_URL`, `DISPATCHER_API_TOKEN`, `LOG_LEVEL`. Per quickstart.md §One-time setup and research.md R12.
-- [ ] T005 [P] Configure ruff in `pyproject.toml` with rules that forbid `time.sleep` and `requests` imports in `app/api/**` and `app/services/**` (custom `[tool.ruff.lint.per-file-ignores]` + `flake8-bandit`/`tidy-imports` style check). Constitution §Operational Constraints — Async-only request path.
-- [ ] T006 [P] Configure mypy in `pyproject.toml` to type-check `app/domain/`, `app/services/`, `app/api/`, `app/infra/` strictly; allow `app/db/models.py` looser typing for SQLAlchemy. Constitution Principle I.
-- [ ] T007 [P] Configure pytest in `pyproject.toml`: `asyncio_mode = "auto"`, `testpaths = ["tests"]`, register custom markers (`e2e`, `golden`).
-- [ ] T008 [P] Create `docker/api.Dockerfile` (python:3.11-slim base, install from pyproject, run `uvicorn app.main:app`).
-- [ ] T009 [P] Create `docker/worker.Dockerfile` (same base, runs the RQ worker entry point against `app/workers/jobs.py`).
-- [ ] T010 [P] Create `docker/postgres.Dockerfile` based on `pgvector/pgvector:pg16` with no other modifications. Source: research.md R1.
-- [ ] T011 Create `docker-compose.yml` declaring services `db`, `redis`, `migrate`, `api`, `worker` with the dependency chain `migrate exits 0 → api/worker start`, plus named volumes `pgdata`, `redisdata`, and `hfcache` (the Hugging Face cache for sentence-transformers weights). Per research.md R2 and R9 and quickstart.md §Bring up the stack.
-- [ ] T012 Verify `data/menu_full_ar.json`, `data/restaurant_info.json`, and `data/intent_classifier.joblib` exist at the repo root under `data/`; move them in from their source location if not yet present. Per plan.md §Project Structure and quickstart.md §One-time setup.
-- [ ] T013 [P] Create `README.md` as the 5-minute setup guide (constitution Principle VI; defers operator detail to `quickstart.md`).
-- [ ] T014 [P] Create `ARCH.md` skeleton with sections: Layered architecture overview, Request lifecycle, External integrations, Data flow. Principle VI.
-- [ ] T015 [P] Create `RUNBOOK.md` skeleton with sections: Start/stop, Polling↔webhook switch, RQ queue inspection, Secret rotation, Single-eval invocation, Migration rollback. Principle VI.
-- [ ] T016 [P] Create `DECISIONS.md` and seed the ten architecture decisions enumerated in plan.md §Architecture decisions to record (single Postgres+pgvector; polling/webhook split; Groq for v1; local multilingual-e5-large; python-telegram-bot; reuse intent_classifier.joblib; Redis-only drafts; dispatcher_name attribution; menu_full_ar.json as menu source; frontend deferral). Principle VI.
-- [ ] T017 [P] Create `.github/workflows/ci.yml` running ruff, mypy on critical modules, and pytest on every push. Constitution Principle II §Testing Standards.
+- [X] T001 Create the `app/` Clean Architecture skeleton (`app/api/`, `app/services/`, `app/repositories/`, `app/domain/`, `app/infra/`, `app/db/`, `app/workers/`, `app/prompts/{en,ar_lb,shared}/`) with empty `__init__.py` files. Layout per plan.md §Project Structure.
+- [X] T002 [P] Create `pyproject.toml` declaring Python 3.11 and pinning: fastapi, pydantic 2, pydantic-settings, sqlalchemy[asyncio] 2.x, asyncpg, alembic, redis, rq, python-telegram-bot, groq, sentence-transformers, torch (CPU-only index), python-json-logger, joblib, rapidfuzz, pytest, pytest-asyncio, ruff, mypy. Source list: plan.md §Technical Context.
+- [X] T003 [P] Create `.gitignore` excluding `.env`, `*.sqlite`, `.venv/`, `__pycache__/`, `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `dist/`, and any committed-by-mistake model weights. Principle V §Security & Data Integrity.
+- [X] T004 [P] Create `.env.example` listing every required key with placeholder values: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_URL`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_WEBHOOK_SECRET_PATH`, `GROQ_API_KEY`, `DATABASE_URL`, `REDIS_URL`, `DISPATCHER_API_TOKEN`, `LOG_LEVEL`. Per quickstart.md §One-time setup and research.md R12.
+- [X] T005 [P] Configure ruff in `pyproject.toml` with rules that forbid `time.sleep` and `requests` imports in `app/api/**` and `app/services/**` (custom `[tool.ruff.lint.per-file-ignores]` + `flake8-bandit`/`tidy-imports` style check). Constitution §Operational Constraints — Async-only request path.
+- [X] T006 [P] Configure mypy in `pyproject.toml` to type-check `app/domain/`, `app/services/`, `app/api/`, `app/infra/` strictly; allow `app/db/models.py` looser typing for SQLAlchemy. Constitution Principle I.
+- [X] T007 [P] Configure pytest in `pyproject.toml`: `asyncio_mode = "auto"`, `testpaths = ["tests"]`, register custom markers (`e2e`, `golden`).
+- [X] T008 [P] Create `docker/api.Dockerfile` (python:3.11-slim base, install from pyproject, run `uvicorn app.main:app`).
+- [X] T009 [P] Create `docker/worker.Dockerfile` (same base, runs the RQ worker entry point against `app/workers/jobs.py`).
+- [X] T010 [P] Create `docker/postgres.Dockerfile` based on `pgvector/pgvector:pg16` with no other modifications. Source: research.md R1.
+- [X] T011 Create `docker-compose.yml` declaring services `db`, `redis`, `migrate`, `api`, `worker` with the dependency chain `migrate exits 0 → api/worker start`, plus named volumes `pgdata`, `redisdata`, and `hfcache` (the Hugging Face cache for sentence-transformers weights). Per research.md R2 and R9 and quickstart.md §Bring up the stack.
+- [X] T012 Verify `data/menu_full_ar.json`, `data/restaurant_info.json`, and `data/intent_classifier.joblib` exist at the repo root under `data/`; move them in from their source location if not yet present. Per plan.md §Project Structure and quickstart.md §One-time setup.
+- [X] T013 [P] Create `README.md` as the 5-minute setup guide (constitution Principle VI; defers operator detail to `quickstart.md`).
+- [X] T014 [P] Create `ARCH.md` skeleton with sections: Layered architecture overview, Request lifecycle, External integrations, Data flow. Principle VI.
+- [X] T015 [P] Create `RUNBOOK.md` skeleton with sections: Start/stop, Polling↔webhook switch, RQ queue inspection, Secret rotation, Single-eval invocation, Migration rollback. Principle VI.
+- [X] T016 [P] Create `DECISIONS.md` and seed the ten architecture decisions enumerated in plan.md §Architecture decisions to record (single Postgres+pgvector; polling/webhook split; Groq for v1; local multilingual-e5-large; python-telegram-bot; reuse intent_classifier.joblib; Redis-only drafts; dispatcher_name attribution; menu_full_ar.json as menu source; frontend deferral). Principle VI.
+- [X] T017 [P] Create `.github/workflows/ci.yml` running ruff, mypy on critical modules, and pytest on every push. Constitution Principle II §Testing Standards.
 
 ---
 

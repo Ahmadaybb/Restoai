@@ -1,0 +1,111 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "restoai-backend"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.111",
+    "uvicorn[standard]>=0.29",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "sqlalchemy[asyncio]>=2.0",
+    "asyncpg>=0.29",
+    "alembic>=1.13",
+    "redis>=5.0",
+    "rq>=1.16",
+    "python-telegram-bot>=21.0",
+    "groq>=0.9",
+    "sentence-transformers>=3.0",
+    "torch>=2.3",
+    "python-json-logger>=2.0",
+    "joblib>=1.4",
+    "rapidfuzz>=3.9",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "types-redis",
+]
+
+# ── ruff ────────────────────────────────────────────────────────────────────
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",    # pycodestyle + pyflakes
+    "I",              # isort
+    "UP",             # pyupgrade
+    "S",              # flake8-bandit (security)
+    "ASYNC",          # flake8-async (asyncio misuse)
+    "TID251",         # banned imports (tidy-imports)
+]
+# Forbid time.sleep and the requests library in the async request path.
+# S501 → no-verify=False; S103 → os.chmod; keep bandit enabled broadly.
+
+[tool.ruff.lint.per-file-ignores]
+# Enforcement: async-only request path (constitution §Operational Constraints)
+"app/api/**" = ["S"]          # bandit already on; duplicate not needed — keep S active
+"app/services/**" = ["S"]
+# The actual import bans are expressed as TID251 entries below.
+
+[tool.ruff.lint.flake8-tidy-imports.banned-imports]
+"time" = { msg = "Use asyncio.sleep instead of time.sleep in the async request path." }
+"requests" = { msg = "Use httpx.AsyncClient instead of requests in the async request path." }
+
+# ── mypy ────────────────────────────────────────────────────────────────────
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_ignores = true
+warn_return_any = true
+
+[[tool.mypy.overrides]]
+module = [
+    "app.domain.*",
+    "app.services.*",
+    "app.api.*",
+    "app.infra.*",
+]
+disallow_untyped_defs = true
+disallow_any_generics = true
+warn_return_any = true
+
+[[tool.mypy.overrides]]
+# SQLAlchemy ORM models use dynamic column declarations; relax here.
+module = ["app.db.models"]
+disallow_untyped_defs = false
+disallow_any_generics = false
+
+[[tool.mypy.overrides]]
+# Third-party stubs not always available.
+module = [
+    "sentence_transformers.*",
+    "joblib.*",
+    "rapidfuzz.*",
+    "rq.*",
+    "telegram.*",
+    "groq.*",
+]
+ignore_missing_imports = true
+
+# ── pytest ───────────────────────────────────────────────────────────────────
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "e2e: end-to-end tests requiring all external services mocked",
+    "golden: golden-set evaluation tests (intent classifier, RAG)",
+]
