@@ -1,0 +1,3384 @@
+{
+  "menu": [
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Zaatar",
+      "description": "Traditional za’atar spread with extra virgin olive oil on our freshly baked tannour.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "تنور زعتر",
+      "description_ar": "زعتر مع زيت الزيتون البكر الممتاز على خبز التنور الطازج"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Cheese",
+      "description": "Our special cheese mix wrapped inside our freshly baked tannour.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "تنور جبنة",
+      "description_ar": "خليط الجبنة المميز ملفوف داخل خبز التنور الطازج"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Cocktail",
+      "description": "A savory mix of za’atar and cheese wrapped inside our freshly baked tannour.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "تنور كوكتيل",
+      "description_ar": "تشكيلة من الزعتر والجبنة على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Labneh",
+      "description": "Creamy, farm-fresh labneh wrapped inside our freshly baked tannour.",
+      "price_usd": 3.5,
+      "is_available": true,
+      "name_ar": "تنور لبنة",
+      "description_ar": "لبنة طازجة من المزرعة على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Keshek",
+      "description": "Our bold, homemade keshek spread wrapped inside our freshly baked tannour for a traditional bite.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "تنور كشك",
+      "description_ar": "كشك تقليدي بالخضار على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Muhammara & Cheese",
+      "description": "A rich combination of our muhammara spread and melted cheese wrapped inside our freshly baked tannour.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "تنور محمرة وجبنة",
+      "description_ar": "محمرة وجبنة على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Turkey & Cheese",
+      "description": "Slices of turkey breast and melted cheese wrapped inside our freshly baked tannour.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "تنور حبش وجبنة",
+      "description_ar": "حبش مدخن وجبنة على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Labneh with Kawarma",
+      "description": "Creamy, farm-fresh labneh paired with our signature kawarma, wrapped inside our freshly baked tannour.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "تنور لبنة وقاورما",
+      "description_ar": "لبنة وكوارما على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Spinach",
+      "description": "A zesty mix of spinach, tomato, onion, and sumac filled inside our freshly baked tannour.",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "تنور سبانخ",
+      "description_ar": "سبانخ بالبصل والسماق على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Bakleh Tannour",
+      "description": "Purslane mixed with tomato, onion, and sumac wrapped inside our freshly baked tannour.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "تنور بقلة",
+      "description_ar": "بقلة بالبصل والسماق على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Kafta Tannour",
+      "description": "Juicy, seasoned kafta wrapped inside our freshly baked tannour for a hearty flavor.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "تنور كفتة",
+      "description_ar": "كفتة لحم متبّلة على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Kafta & Cheese Tannour",
+      "description": "A flavorful pairing of kafta and melted cheese wrapped inside our freshly baked tannour.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "تنور كفتة وجبنة",
+      "description_ar": "كفتة وجبنة على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Sujuk & Cheese",
+      "description": "Lebanese sujuk sausage and melted cheese wrapped inside our freshly baked tannour.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "تنور سجق وجبنة",
+      "description_ar": "سجق وجبنة على خبز التنور"
+    },
+    {
+      "category": "Authentic Woodfire Tannour Manakish",
+      "group": "TANNOUR",
+      "name": "Nutella & Cheese Tannour",
+      "description": "Melted Nutella chocolate spread paired with melted cheese, wrapped inside our freshly baked tannour.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "تنور نوتيلا وجبنة",
+      "description_ar": "نوتيلا وجبنة على خبز التنور"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Balila",
+      "description": "Chickpea, lemon, and garlic served with fresh vegetables.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "بليلة",
+      "description_ar": "حمص بالليمون والثوم يُقدّم مع خضار طازجة"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Msabaha",
+      "description": "Chickpeas with tahini, lemon, and garlic served with fresh vegetables.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "مسبحة",
+      "description_ar": "حمص بالطحينة والليمون والثوم يُقدّم مع خضار طازجة"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Foul",
+      "description": "Fava beans, chickpeas and lemon served with fresh vegetables.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "فول",
+      "description_ar": "فول و حمص بالليمون يُقدّم مع خضار طازجة"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Fried Eggs with Kawarma",
+      "description": "Organic farm-fresh fried eggs with kawarma, served with fresh vegetables.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "بيض بقورما بالفخار",
+      "description_ar": "بيض عضوي مقلي طازج من المزرعة مع كوارما، يُقدّم مع خضار طازجة"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Fried Eggs with Sujuk",
+      "description": "Organic farm-fresh fried eggs with sujuk, served with fresh vegetables.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "بيض بقورما سجق بالفخار",
+      "description_ar": "بيض عضوي مقلي طازج من المزرعة مع سجق، يُقدّم مع خضار طازجة"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Eggs Your Style",
+      "description": "Organic farm-fresh eggs — scrambled, sunny side up, served with fresh vegetables.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "بيض مخفوق أو عيون",
+      "description_ar": "بيض عضوي طازج من المزرعة — مخفوق أو عيون — يُقدّم مع خضار طازجة"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Cow Labneh Plate",
+      "description": "Creamy cow labneh made with our fresh farm milk.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "صحن لبنة بقر",
+      "description_ar": "لبنة بقريّة كريمية مصنوعة من حليب مزرعتنا الطازج"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Labneh with Kawarma",
+      "description": "Creamy cow or goat labneh topped with our signature Kawarma.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "تنور لبنة وقاورما",
+      "description_ar": "لبنة وكوارما على خبز التنور"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Cow Labneh Balls",
+      "description": "Farm-fresh cow labneh balls with olives.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "لبنة مكعزلة بقر",
+      "description_ar": "كرات لبنة بقريّة طازجة من المزرعة مع الزيتون"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Goat Labneh Balls",
+      "description": "Farm-fresh goat labneh balls with olives.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "لبنة مكعزلة ماعز",
+      "description_ar": "كرات لبنة ماعز طازجة من المزرعة مع الزيتون"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Mixed Cheese Platter",
+      "description": "A selection of our farm-fresh cheeses: nabulsi, akkawi, baladiye, halloum, feta, and meshalale, served with fresh vegetables.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "صحن جبنة مشكلة",
+      "description_ar": "تشكيلة من أجباننا الطازجة من المزرعة"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Ambaris Spread Plate",
+      "description": "Our signature Aged fermented goat labneh — a Baalbek tradition.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "صحن قمبريس لبنة",
+      "description_ar": "لبنة الماعز المخمّرة المعتّقة الخاصة بنا — تقليد من بعلبك"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Shanklish Labneh Plate",
+      "description": "Shanklish labneh balls with our signature spices, tomato, onion and parsley.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "صحن شنكليش لبنة",
+      "description_ar": "كرات لبنة شنكليش مع توابلنا الخاصة، بندورة، بصل وبقدونس"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Karishe and Honey",
+      "description": "Our special Karishe served with mini honey jars.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "صحن قريشة وعسل",
+      "description_ar": "القاريشة الخاصة بنا تُقدّم مع جرار عسل صغيرة"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Shanklish Cheese Plate",
+      "description": "Shanklish cheese mixed with tomato, onion, parsley and our signature spices.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "صحن شنكليش جبنة",
+      "description_ar": "جبن شنكليش ممزوج مع بندورة، بصل، بقدونس وتوابلنا المميزة"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Goat Labneh Plate",
+      "description": "Creamy goat labneh made with our fresh farm milk.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "صحن لبنة ماعز",
+      "description_ar": "لبنة ماعز كريمية مصنوعة من حليب مزرعتنا الطازج"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Labneh with vegetbales",
+      "description": "Creamy cow or goat labneh mixed with vegetables.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "صحن لبنة مع خضرة",
+      "description_ar": "لبنة كريمية بقريّة أو ماعز ممزوجة بالخضار"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Choose Your Cheese Plate",
+      "description": "Your choice of our farm-fresh cheese plates: Halloum, Feta, Baladiyeh, Nabulsi, Akkawi, Meshalale, double cream.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "اختر تشكيلة طبق",
+      "description_ar": "اختر من أطباق أجباننا الطازجة من المزرعة: حلومي، فيتا، بلدية، نابلسي، عكاوي، مشللة، وكريمة مزدوجة"
+    },
+    {
+      "category": "Breakfast",
+      "group": "BREAKFAST",
+      "name": "Olives Plate",
+      "description": "A selection of fresh olives served as a side.",
+      "price_usd": 2.0,
+      "is_available": true,
+      "name_ar": "صحن زيتون",
+      "description_ar": "تشكيلة من الزيتون الأخضر والأسود"
+    },
+    {
+      "category": "Burgers",
+      "group": "BURGER",
+      "name": "Lebanese Burger",
+      "description": "Minced meat burger, coleslaw, fries and ketchup.",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "برغر لبناني",
+      "description_ar": "برغر لحم مفروم، كولسلو، بطاطا مقلية وكاتشب"
+    },
+    {
+      "category": "Burgers",
+      "group": "BURGER",
+      "name": "Lebanese Burger Plate",
+      "description": "Lebanese burger served as a full plate with sides.",
+      "price_usd": 14.0,
+      "is_available": true,
+      "name_ar": "صحن برغر لبناني",
+      "description_ar": "البرغر اللبناني يُقدّم كصحن كامل مع الإضافات"
+    },
+    {
+      "category": "Chanklish",
+      "group": "RETAIL CHANKLICH",
+      "name": "CHANKLISH TRAY",
+      "description": "A tray of our house-made chanklish cheese with signature spices.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "صينية شنكليش",
+      "description_ar": "شنكليش الجبنة الخاصة بنا مع البندورة والبصل وزيت الزيتون"
+    },
+    {
+      "category": "Chanklish",
+      "group": "RETAIL CHANKLICH",
+      "name": "CHANKLISH 2 PCS",
+      "description": "Two pieces of our house-made chanklish cheese balls.",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "شنكليش حبتين",
+      "description_ar": "كرتين من الشنكليش"
+    },
+    {
+      "category": "Cheese",
+      "group": "RETAIL CHEESE NV",
+      "name": "KARISHEH",
+      "description": "Fresh farm-made karishe, a traditional soft crumbly cheese.",
+      "price_usd": 3.75,
+      "is_available": true,
+      "name_ar": "قريشة",
+      "description_ar": "جبنة قريشة طازجة من المزرعة"
+    },
+    {
+      "category": "Cheese",
+      "group": "RETAIL CHEESE NV",
+      "name": "MAJDOULEH",
+      "description": "Braided farm-fresh cheese with a stretchy, mild flavor.",
+      "price_usd": 17.0,
+      "is_available": true,
+      "name_ar": "مجدولة",
+      "description_ar": "جبنة مجدولة طازجة من المزرعة"
+    },
+    {
+      "category": "Cheese",
+      "group": "RETAIL CHEESE NV",
+      "name": "NABOULSI",
+      "description": "Traditional Nabulsi white brine cheese, firm and slightly salty.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "نابلسي",
+      "description_ar": "جبنة نابلسي طازجة من المزرعة"
+    },
+    {
+      "category": "Cheese",
+      "group": "RETAIL CHEESE NV",
+      "name": "DOUBLE CREAM",
+      "description": "Rich, thick double cream cheese made from fresh farm milk.",
+      "price_usd": 8.5,
+      "is_available": true,
+      "name_ar": "دوبل كريم",
+      "description_ar": "جبنة دوبل كريم طازجة من المزرعة"
+    },
+    {
+      "category": "Cheese",
+      "group": "RETAIL CHEESE NV",
+      "name": "AKKAWI TSHIKI",
+      "description": "Semi-hard Akkawi cheese with a mild, slightly salty taste.",
+      "price_usd": 13.5,
+      "is_available": true,
+      "name_ar": "عكاوي تشيكي",
+      "description_ar": "جبنة عكاوي تشيكي طازجة من المزرعة"
+    },
+    {
+      "category": "Cheese",
+      "group": "RETAIL CHEESE NV",
+      "name": "HALLOUM",
+      "description": "Farm-fresh halloumi cheese, perfect for grilling or frying.",
+      "price_usd": 11.0,
+      "is_available": true,
+      "name_ar": "حلوم",
+      "description_ar": "جبنة حلوم طازجة من المزرعة"
+    },
+    {
+      "category": "Cheese",
+      "group": "RETAIL CHEESE NV",
+      "name": "BALADIYEH",
+      "description": "Traditional Lebanese village-style fresh white cheese.",
+      "price_usd": 9.5,
+      "is_available": true,
+      "name_ar": "بلدية",
+      "description_ar": "جبنة بلدية طازجة من المزرعة"
+    },
+    {
+      "category": "Cheese",
+      "group": "RETAIL CHEESE NV",
+      "name": "CHELAL",
+      "description": "Stringy, braided Lebanese cheese with a mild flavor.",
+      "price_usd": 14.0,
+      "is_available": true,
+      "name_ar": "شلال",
+      "description_ar": "جبنة شلال طازجة من المزرعة"
+    },
+    {
+      "category": "Cheese",
+      "group": "RETAIL CHEESE NV",
+      "name": "AKKAWI BALADI",
+      "description": "Traditional Akkawi baladi cheese, soft and lightly salted.",
+      "price_usd": 11.0,
+      "is_available": true,
+      "name_ar": "عكاوي بلدي",
+      "description_ar": "جبنة عكاوي بلدي طازجة من المزرعة"
+    },
+    {
+      "category": "Cheese",
+      "group": "RETAIL CHEESE NV",
+      "name": "FETA",
+      "description": "Crumbly, tangy feta cheese made from fresh farm milk.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "فيتا",
+      "description_ar": "جبنة فيتا طازجة من المزرعة"
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "ICED LATTE",
+      "description": "Chilled espresso with fresh cold milk over ice.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "ICED LATTE",
+      "description_ar": "Chilled espresso with fresh cold milk over ice."
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "ICED COFFEE",
+      "description": "Cold brewed coffee served over ice.",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "ICED COFFEE",
+      "description_ar": "Cold brewed coffee served over ice."
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "ICED MOCHA",
+      "description": "Shake of Coffee, Milk and Chocolate Sauce",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "ICED MOCHA",
+      "description_ar": "Shake of Coffee, Milk and Chocolate Sauce"
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "FRAPUCCINO",
+      "description": "Coffee Beans Mixed with Milk and Ice",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "FRAPUCCINO",
+      "description_ar": "Coffee Beans Mixed with Milk and Ice"
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "CARAMEL FRAPUCCINO",
+      "description": "Coffee Beans Mixed with Milk, Caramel Sauce and Ice",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "CARAMEL FRAPUCCINO",
+      "description_ar": "Coffee Beans Mixed with Milk, Caramel Sauce and Ice"
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "CHOCOLATE FRAPUCCINO",
+      "description": "Coffee Beas Mixed with Milk, Chocolate Sauce and Ice",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "CHOCOLATE FRAPUCCINO",
+      "description_ar": "Coffee Beas Mixed with Milk, Chocolate Sauce and Ice"
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "CUP OF AYRAN",
+      "description": "Chilled, refreshing salted yogurt drink.",
+      "price_usd": 2.75,
+      "is_available": true,
+      "name_ar": "كاسة عيران",
+      "description_ar": "عيران بارد منعش"
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "ENERGY DRINK",
+      "description": "Red Bull",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "ENERGY DRINK",
+      "description_ar": "Red Bull"
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "LAZIZA",
+      "description": "Lebanese non-alcoholic malt beverage, refreshing and lightly sweet.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "LAZIZA",
+      "description_ar": "Lebanese non-alcoholic malt beverage, refreshing and lightly sweet."
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "LAZIZA MEXICAN",
+      "description": "Lebanese non-alcoholic malt beverage with a Mexican spice twist.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "LAZIZA MEXICAN",
+      "description_ar": "Lebanese non-alcoholic malt beverage with a Mexican spice twist."
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "ICE TEA",
+      "description": "Lipton",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "ICE TEA",
+      "description_ar": "Lipton"
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "PEPSI",
+      "description": "Ice-cold Pepsi cola.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "PEPSI",
+      "description_ar": "Ice-cold Pepsi cola."
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "SEVEN UP",
+      "description": "Ice-cold Seven Up lemon-lime soda.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "SEVEN UP",
+      "description_ar": "Ice-cold Seven Up lemon-lime soda."
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "MIRANDA",
+      "description": "Ice-cold Miranda orange soda.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "MIRANDA",
+      "description_ar": "Ice-cold Miranda orange soda."
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "AYRAN BOTTLE",
+      "description": "Chilled bottled salted yogurt drink.",
+      "price_usd": 2.75,
+      "is_available": true,
+      "name_ar": "قنينة عيران",
+      "description_ar": "قنينة عيران كبيرة"
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "SAN PELLIGRINO",
+      "description": "Sparkling Italian mineral water.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "SAN PELLIGRINO",
+      "description_ar": "Sparkling Italian mineral water."
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "SMALL WATER",
+      "description": "Small bottle of still water.",
+      "price_usd": 2.5,
+      "is_available": true,
+      "name_ar": "مياه صغيرة",
+      "description_ar": "مياه معدنية صغيرة"
+    },
+    {
+      "category": "Cold Beverages",
+      "group": "COLD BEVERAGE",
+      "name": "LARGE WATER",
+      "description": "Large bottle of still water.",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "مياه كبيرة",
+      "description_ar": "مياه معدنية كبيرة"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Grape Leaves with Oil",
+      "description": "Stuffed grape leaves with rice, tomato, parsley and mint.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "ورق عنب بالزيت",
+      "description_ar": "ورق عنب محشي بالأرز، البندورة، البقدونس والنعنع"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Labneh with Garlic",
+      "description": "Labneh with garlic and dried mint.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "لبنة مثومة",
+      "description_ar": "لبنة بالثوم والنعنع المجفف"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Hummus Har",
+      "description": "Chickpea and chili pepper blend with tahini and lemon.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "حمص حر",
+      "description_ar": "خليط الحمص والفلفل الحار مع الطحينة والليمون"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Hummus Beiruti",
+      "description": "Chickpea dip with tahini, garlic, parsley and lemon topped with fava bean and tomato.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "حمص بيروتي",
+      "description_ar": "حمص بالطحينة والثوم والبقدونس والليمون، مغطّى بالفول والبندورة"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Hummus",
+      "description": "Chickpea dip with tahini and lemon.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "حمص",
+      "description_ar": "حمص بالطحينة والليمون"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Hummus Lahme",
+      "description": "Chickpea dip with tahini, lemon, meat cubes and toasted pine nuts.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "حمص بلحمة",
+      "description_ar": "حمص بالطحينة والليمون مع مكعبات اللحم وصنوبر محمص"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Hummus With Awarma",
+      "description": "Creamy chickpea dip with tahini and lemon topped with our signature kawarma.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "حمص بقاورما",
+      "description_ar": "حمص بالطحينة والليمون مع كوارما اللحم"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Mutabbal",
+      "description": "Flame-grilled eggplant with tahini, lemon and fresh pomegranate.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "متبل",
+      "description_ar": "باذنجان مشوي على النار مع الطحينة والليمون والرمان الطازج"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Mutabbal Ajami",
+      "description": "Flamed- grilled eggplant with tahini and lemon topped with tomato sauce and toasted almonds.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "متبل عجمي",
+      "description_ar": "باذنجان مشوي على النار مع الطحينة والليمون، مغطّى بصلصة البندورة واللوز المحمص"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Muhammara",
+      "description": "Roasted sweet pepper and walnut dip, topped with shaved walnut and fresh pomegranate.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "محمرة",
+      "description_ar": "متبل الفليفلة الحلوة المحمصة مع الجوز، مغطّى بشرائح الجوز والرمان الطازج"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Raheb",
+      "description": "Flame-grilled eggplant with tomato, onion, garlic, green pepper and lemon topped with fresh pomegranate and extra virgin olive oil.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "راهب",
+      "description_ar": "باذنجان مشوي مع البندورة والبصل والبقدونس وزيت الزيتون"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Vegetables Plate",
+      "description": "Tomato, cucumber, radish, onion, chili pepper, olive, and mint.",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "صحن خضرة",
+      "description_ar": "بندورة، خيار، فجل، بصل، فلفل حار، زيتون ونعنع"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Goat Yogurt",
+      "description": "Fresh, creamy goat yogurt made from our farm milk.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "لبن ماعز",
+      "description_ar": "كاسة لبن ماعز طازج"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Sheep Yogurt",
+      "description": "Fresh, creamy sheep yogurt made from our farm milk.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "لبن غنم",
+      "description_ar": "كاسة لبن غنم طازج"
+    },
+    {
+      "category": "Cold Mezza",
+      "group": "COLD MEZZA",
+      "name": "Cow Yogurt",
+      "description": "Fresh, creamy cow yogurt made from our farm milk.",
+      "price_usd": 2.5,
+      "is_available": true,
+      "name_ar": "لبن بقر",
+      "description_ar": "كاسة لبن بقر طازج"
+    },
+    {
+      "category": "Cold Sandwiches",
+      "group": "COLD SANDWICHES",
+      "name": "Cow Labneh Sandwich",
+      "description": "Labneh, cucumber, olives, and mint served in saj bread with extra virgin olive oil.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "ساندويش لبنة بقر",
+      "description_ar": "لبنة، خيار، زيتون ونعنع تُقدّم في خبز الصاج مع زيت الزيتون البكر الممتاز"
+    },
+    {
+      "category": "Cold Sandwiches",
+      "group": "COLD SANDWICHES",
+      "name": "Goat Labneh Sandwich",
+      "description": "Labneh, cucumber, olives, and mint served in saj bread with extra virgin olive oil.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "ساندويش لبنة ماعز",
+      "description_ar": "لبنة مع خيار وزيتون ونعنع تُقدّم في خبز الصاج مع زيت الزيتون البكر الممتاز"
+    },
+    {
+      "category": "Cold Sandwiches",
+      "group": "COLD SANDWICHES",
+      "name": "Ambaris Sandwich",
+      "description": "Traditional ambaris spread, cucumber, olives, and mint served in saj bread with extra virgin olive oil.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "ساندويش قمبريس",
+      "description_ar": "متبل قَمبَرِيس التقليدي مع خيار وزيتون ونعنع يُقدّم في خبز الصاج مع زيت الزيتون البكر الممتاز"
+    },
+    {
+      "category": "Cold Sandwiches",
+      "group": "COLD SANDWICHES",
+      "name": "Karishe and Honey",
+      "description": "Traditional karishe spread with a drizzle of honey served in saj bread.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "صحن قريشة وعسل",
+      "description_ar": "القاريشة الخاصة بنا تُقدّم مع جرار عسل صغيرة"
+    },
+    {
+      "category": "Cold Sandwiches",
+      "group": "COLD SANDWICHES",
+      "name": "Make Your Own Cheese Sandwich",
+      "description": "Personalize your sandwich (Halloum, Baladiyeh, Double Cream, Feta, Akkawi, Meshalale)",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "ساندويش جبنة (اختياري)",
+      "description_ar": "اختر جبنتك المفضلة في خبز الصاج"
+    },
+    {
+      "category": "Cold Sandwiches",
+      "group": "COLD SANDWICHES",
+      "name": "Malseh Sandwich",
+      "description": "Creamy raw meat, onions, garlic, and mint served in tannour bread with extra virgin olive oil.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "ساندويش ملسة",
+      "description_ar": "ملسة لحم نية في خبز الصاج"
+    },
+    {
+      "category": "Cold Sandwiches",
+      "group": "COLD SANDWICHES",
+      "name": "Raw Kafta Sandwich",
+      "description": "Finely minced raw meat, black pepper, onions, and mint served in tannour bread.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "ساندويش كفتة نية",
+      "description_ar": "كفتة نية في خبز الصاج"
+    },
+    {
+      "category": "Cold Sandwiches",
+      "group": "COLD SANDWICHES",
+      "name": "Mujarmashe Sandwich",
+      "description": "Finely chopped raw meat with black pepper, onions, and mint served in tannour bread.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "ساندويش مجرمشة",
+      "description_ar": "مجرمشة في خبز الصاج"
+    },
+    {
+      "category": "Cold Sandwiches",
+      "group": "COLD SANDWICHES",
+      "name": "Nayyeh Liver Sandwich",
+      "description": "Raw lamb liver and fat, mint, and raw onions served in saj bread.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "ساندويش سودة نية",
+      "description_ar": "سودة نية في خبز الصاج"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "PANCAKE",
+      "description": "STRAWBERRY,MILK CHOCOLATE AND CREAM",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "بانكيك",
+      "description_ar": "بانكيك بالشوكولاتة والفواكه"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "Ice Cream Scoop (Choose Your Flavor)",
+      "description": "Chocolate | Vanilla | Strawberry | Ashta",
+      "price_usd": 2.5,
+      "is_available": true,
+      "name_ar": "بوظة (اختر النكهة)",
+      "description_ar": "كرة بوظة بنكهة الاختيار"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "LOTUS CREPE",
+      "description": "LOTUS, MILK CHOCOLATE AND BANANA",
+      "price_usd": 8.5,
+      "is_available": true,
+      "name_ar": "كريب لوتس",
+      "description_ar": "كريب محشي بكريمة اللوتس"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "NUTELLA CREPE",
+      "description": "NUTELLA, STRAWBERRY, BANANA, HAZELNUT AND MARSHMALLOWS",
+      "price_usd": 8.5,
+      "is_available": true,
+      "name_ar": "كريب نوتيلا",
+      "description_ar": "كريب محشي بالنوتيلا"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "WAFFLE",
+      "description": "STRAWBERRY, MILK CHOCOLATE, CREAM AND CHOCOLATE DROPS",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "وافل",
+      "description_ar": "وافل بالعسل والفواكه"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "OREO CREPE",
+      "description": "OREO, NUTELLA AND MARSHMALLOWS",
+      "price_usd": 8.5,
+      "is_available": true,
+      "name_ar": "كريب أوريو",
+      "description_ar": "كريب محشي بالأوريو"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "BAKLAWA PISTACHIO",
+      "description": "BAKLAVA PISTACHIO AND VANILLA ICE CREAM",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "بقلاوة بالفستق",
+      "description_ar": "بقلاوة محشوة بالفستق الحلبي"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "ROLL OSMALIEH BL ASHTA",
+      "description": "Crispy osmalieh pastry roll filled with rich ashta cream.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "رول عثمانية بالقشطة",
+      "description_ar": "عثمانية ملفوفة بالقشطة"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "MAAMOUL MAD BEL ASHTA",
+      "description": "Soft maamoul cake layered with fresh ashta cream.",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "معمول مد بالقشطة",
+      "description_ar": "معمول مد محشي بالقشطة"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "KNEFEH",
+      "description": "Classic Lebanese knefeh with warm cheese and sweet sugar syrup.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "كنافة",
+      "description_ar": "كنافة بالجبنة تُقدّم مع القطر"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "BROWNIES",
+      "description": "BROWNIES AND VANILLA ICE CREAM",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "براونيز",
+      "description_ar": "براونيز بالشوكولاتة"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "CHOCOLATE FONDANT",
+      "description": "CHOCOLATE FONDANT AND VANILLA ICE CREAM",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "فوندان شوكولاتة",
+      "description_ar": "فوندان شوكولاتة بالقلب السائل"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "TIRAMISU",
+      "description": "Classic Italian tiramisu with espresso-soaked ladyfingers and mascarpone cream.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "تيراميسو",
+      "description_ar": "تيراميسو إيطالي تقليدي"
+    },
+    {
+      "category": "Dessert",
+      "group": "DESSERT",
+      "name": "PAIN PERDU",
+      "description": "French-style pain perdu, golden brioche with cream and toppings.",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "بان بيردو",
+      "description_ar": "خبز محمص بالبيض والحليب والسكر"
+    },
+    {
+      "category": "Dessert Jar",
+      "group": "Dessert Jar",
+      "name": "OREO JAR",
+      "description": "Layered dessert jar with Oreo cookies and cream.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "جرة أوريو",
+      "description_ar": "حلى الأوريو في جرة"
+    },
+    {
+      "category": "Dessert Jar",
+      "group": "Dessert Jar",
+      "name": "MAFROUKEH CHEESECAKE JAR",
+      "description": "Layered jar with mafroukeh and creamy cheesecake.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "جرة مفروكة تشيز كيك",
+      "description_ar": "مفروكة مع تشيز كيك في جرة"
+    },
+    {
+      "category": "Dessert Jar",
+      "group": "Dessert Jar",
+      "name": "LOTUS JAR",
+      "description": "Layered dessert jar with Lotus biscoff cream and biscuits.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "جرة لوتس",
+      "description_ar": "حلى اللوتس في جرة"
+    },
+    {
+      "category": "Dessert Jar",
+      "group": "Dessert Jar",
+      "name": "TIRAMISU JAR",
+      "description": "Classic tiramisu served in a convenient jar.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "جرة تيراميسو",
+      "description_ar": "تيراميسو في جرة"
+    },
+    {
+      "category": "Dessert Jar",
+      "group": "Dessert Jar",
+      "name": "REZZ BHALIB PISTACHIO JAR",
+      "description": "Creamy rice pudding with pistachio served in a jar.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "جرة رز بحليب بالفستق",
+      "description_ar": "رز بحليب بالفستق الحلبي في جرة"
+    },
+    {
+      "category": "Dessert Retail",
+      "group": "DESSERTS RETAIL",
+      "name": "JELLO",
+      "description": "Classic fruit-flavored jello dessert.",
+      "price_usd": 2.0,
+      "is_available": true,
+      "name_ar": "جيلو",
+      "description_ar": "جيلو بنكهات متعددة"
+    },
+    {
+      "category": "Dessert Retail",
+      "group": "DESSERTS RETAIL",
+      "name": "CUSTARD",
+      "description": "Smooth, creamy vanilla custard.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "كاسترد",
+      "description_ar": "كاسترد فانيلا"
+    },
+    {
+      "category": "Dessert Retail",
+      "group": "DESSERTS RETAIL",
+      "name": "CUSTARD CHOCOLATE",
+      "description": "Smooth, rich chocolate custard.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "كاسترد شوكولاتة",
+      "description_ar": "كاسترد بالشوكولاتة"
+    },
+    {
+      "category": "Dessert Retail",
+      "group": "DESSERTS RETAIL",
+      "name": "MOUHALLABIYEH",
+      "description": "Traditional Lebanese milk pudding with rose water.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "مهلبية",
+      "description_ar": "مهلبية تقليدية بماء الورد والمكسرات"
+    },
+    {
+      "category": "Dessert Retail",
+      "group": "DESSERTS RETAIL",
+      "name": "MEGHLEH",
+      "description": "Traditional Lebanese spiced rice pudding with shredded coconut and nuts.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "مغلي",
+      "description_ar": "مغلي تقليدي بالمكسرات"
+    },
+    {
+      "category": "Dessert Retail",
+      "group": "DESSERTS RETAIL",
+      "name": "AMHIYEH",
+      "description": "Traditional Lebanese starch-based pudding with rose water.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "عمحية",
+      "description_ar": "حلوى عمحية تقليدية"
+    },
+    {
+      "category": "Dessert Retail",
+      "group": "DESSERTS RETAIL",
+      "name": "RICE PUDDING",
+      "description": "Creamy rice pudding made with fresh farm milk.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "رز بحليب",
+      "description_ar": "رز بحليب تقليدي"
+    },
+    {
+      "category": "Dessert Retail",
+      "group": "DESSERTS RETAIL",
+      "name": "TOAST",
+      "description": "Lightly toasted bread, served plain.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "توست",
+      "description_ar": "خبز توست محمص"
+    },
+    {
+      "category": "Dessert Retail",
+      "group": "DESSERTS RETAIL",
+      "name": "MOUSSE CHOCOLATE JAR",
+      "description": "Rich chocolate mousse served in a jar.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "جرة موس شوكولاتة",
+      "description_ar": "موس شوكولاتة في جرة"
+    },
+    {
+      "category": "Fatteh",
+      "group": "FATTEH",
+      "name": "Sfiha Fatteh",
+      "description": "Mini Sfiha, chickpea, our farm fresh yogurt, toasted pine nut, fresh pomegranate and crispy Arabic bread.",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "فتة صفيحة",
+      "description_ar": "صفيحة صغيرة، حمص، زبادي طازج من مزرعتنا، صنوبر محمص، رمان طازج وخبز عربي مقرمش"
+    },
+    {
+      "category": "Fatteh",
+      "group": "FATTEH",
+      "name": "Hummus Fatteh",
+      "description": "Chickpea, our farm fresh yogurt, toasted pine nut, fresh pomegranate and crispy Arabic bread.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "فتة حمص",
+      "description_ar": "حمص، زبادي طازج من مزرعتنا، صنوبر محمص، رمان طازج وخبز عربي مقرمش"
+    },
+    {
+      "category": "Fatteh",
+      "group": "FATTEH",
+      "name": "Eggplant Fatteh",
+      "description": "Fried eggplant marinated in tomato sauce, chickpea, our farm fresh yogurt, toasted pine nut, fresh pomegranate, and crispy Arabic bread.",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "فتة باذنجان",
+      "description_ar": "باذنجان مقلي، حمص، زبادي طازج، صنوبر محمص، رمان طازج وخبز عربي مقرمش"
+    },
+    {
+      "category": "Fatteh",
+      "group": "FATTEH",
+      "name": "Lsanat Fatteh",
+      "description": "Fried tongue, chickpea, our farm fresh yogurt, toasted pine nut, fresh pomegranate, and crispy Arabic bread.",
+      "price_usd": 13.0,
+      "is_available": true,
+      "name_ar": "فتة لسانات",
+      "description_ar": "لسان مقلي، حمص، زبادي طازج من مزرعتنا، صنوبر محمص، رمان طازج وخبز عربي مقرمش"
+    },
+    {
+      "category": "Fatteh",
+      "group": "FATTEH",
+      "name": "Makadem Fatteh",
+      "description": "Boiled makadem, chickpea, our farm fresh yogurt, toasted pine nut, fresh pomegranate, and crispy Arabic bread.",
+      "price_usd": 14.0,
+      "is_available": true,
+      "name_ar": "فتة مقادم",
+      "description_ar": "مقادِم مسلوقة، حمص، زبادي طازج من مزرعتنا، صنوبر محمص، رمان طازج وخبز عربي مقرمش"
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "Green Detox",
+      "description": "Fresh apple and cucumber blended with , kiwi, celery, fresh mint, ginger, lemon, and pineapple juice",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "Green Detox",
+      "description_ar": "Fresh apple and cucumber blended with , kiwi, celery, fresh mint, ginger, lemon, and pineapple juice"
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "Red Detox",
+      "description": "Fresh beetroot and orange juice blended with lemon and a touch of ginger.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "Red Detox",
+      "description_ar": "Fresh beetroot and orange juice blended with lemon and a touch of ginger."
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "Pineapple Fire",
+      "description": "Tropical pineapple juice shaken with lime, vanilla syrup, and cinnamon.",
+      "price_usd": 11.0,
+      "is_available": true,
+      "name_ar": "Pineapple Fire",
+      "description_ar": "Tropical pineapple juice shaken with lime, vanilla syrup, and cinnamon."
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "Lemonade Twist",
+      "description": "Fresh lemonade blended with fresh orange juice for a citrusy twist.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "Lemonade Twist",
+      "description_ar": "Fresh lemonade blended with fresh orange juice for a citrusy twist."
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "Fresh Mango",
+      "description": "Freshly blended ripe mango served chilled.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "Fresh Mango",
+      "description_ar": "Freshly blended ripe mango served chilled."
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "Passion Heaven",
+      "description": "Fresh passion fruit blended with fresh orange juice and mango for a tropical fusion.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "Passion Heaven",
+      "description_ar": "Fresh passion fruit blended with fresh orange juice and mango for a tropical fusion."
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "Ice Latte Punch",
+      "description": "Double espresso mixed with our fresh milk and sweet condensed milk over ice.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "Ice Latte Punch",
+      "description_ar": "Double espresso mixed with our fresh milk and sweet condensed milk over ice."
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "Oreo Milkshake",
+      "description": "Creamy milkshake blended with Oreo cookies and rich chocolate syrup.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "Oreo Milkshake",
+      "description_ar": "Creamy milkshake blended with Oreo cookies and rich chocolate syrup."
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "Strawberry Milkshake",
+      "description": "Fresh strawberries blended with banana, honey and our fresh milk.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "Strawberry Milkshake",
+      "description_ar": "Fresh strawberries blended with banana, honey and our fresh milk."
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "Avocado Bowl",
+      "description": "Fresh avocado blended into a rich and creamy bowl topped with granola, our farm-fresh karishe and strawberries.",
+      "price_usd": 13.0,
+      "is_available": true,
+      "name_ar": "Avocado Bowl",
+      "description_ar": "Fresh avocado blended into a rich and creamy bowl topped with granola, our farm-fresh karishe and strawberries."
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "ORANGE JUICE",
+      "description": "Fresh Orange Juice",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "عصير برتقال",
+      "description_ar": "عصير برتقال طازج"
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "BERRIES LEMONADE",
+      "description": "Fresh lemonade blended with a mix of seasonal berries.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "ليمونادة التوت",
+      "description_ar": "ليمونادة طازجة بالتوت المشكل"
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "STRAWBERRY",
+      "description": "Fresh Strawberry Juice",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "فراولة",
+      "description_ar": "عصير فراولة طازج"
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "LEMONADE",
+      "description": "Fresh Lemonade",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "ليمونادة",
+      "description_ar": "ليمونادة طازجة"
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "MINTED LEMONADE",
+      "description": "Fresh Lemonade with Mint",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "ليمونادة بالنعنع",
+      "description_ar": "ليمونادة طازجة بالنعنع"
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "BASIL LEMONADE",
+      "description": "Fresh Lemonade with Basil",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "ليمونادة بالحبق",
+      "description_ar": "ليمونادة طازجة بالحبق"
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "COCKTAIL JUICE",
+      "description": "Banana, Milk and Strawberry Juice topped with Karisheh, Honey and Nuts",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "عصير كوكتيل",
+      "description_ar": "كوكتيل من العصائر الطازجة"
+    },
+    {
+      "category": "Fresh juice",
+      "group": "COCKTAIL",
+      "name": "POMEGRANATE JUICE",
+      "description": "Freshly pressed pomegranate juice.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "عصير رمان",
+      "description_ar": "عصير رمان طازج"
+    },
+    {
+      "category": "Fresh Raw Meat",
+      "group": "RAW MEAT SNACK",
+      "name": "Frakeh",
+      "description": "Finely ground raw meat, bulgur, and Lebanese kamouneh served with fresh vegetables.",
+      "price_usd": 13.5,
+      "is_available": true,
+      "name_ar": "فراكة",
+      "description_ar": "فراكة لحم نية مع البرغل والتوابل"
+    },
+    {
+      "category": "Fresh Raw Meat",
+      "group": "RAW MEAT SNACK",
+      "name": "Malseh",
+      "description": "Creamy raw meat served with garlic cream and fresh vegetables.",
+      "price_usd": 16.0,
+      "is_available": true,
+      "name_ar": "ملسة",
+      "description_ar": "ملسة لحم نية مع التوابل"
+    },
+    {
+      "category": "Fresh Raw Meat",
+      "group": "RAW MEAT SNACK",
+      "name": "Kebbe",
+      "description": "Finely minced raw meat, bulgur, and Lebanese spices served with fresh vegetables.",
+      "price_usd": 13.5,
+      "is_available": true,
+      "name_ar": "كبة نية",
+      "description_ar": "كبة نية تقليدية بلحم العجل المفروم ناعماً"
+    },
+    {
+      "category": "Fresh Raw Meat",
+      "group": "RAW MEAT SNACK",
+      "name": "Kafta Plate",
+      "description": "Finely minced raw meat, parsley, onions, and black pepper served with fresh vegetables.",
+      "price_usd": 16.0,
+      "is_available": true,
+      "name_ar": "صحن كفتة نية",
+      "description_ar": "كفتة نية مع التوابل"
+    },
+    {
+      "category": "Fresh Raw Meat",
+      "group": "RAW MEAT SNACK",
+      "name": "Mujarmashe Plate",
+      "description": "Finely chopped raw lamb and black pepper served with fresh vegetables.",
+      "price_usd": 17.0,
+      "is_available": true,
+      "name_ar": "صحن مجرمشة",
+      "description_ar": "مجرمشة لحم نية"
+    },
+    {
+      "category": "Fresh Raw Meat",
+      "group": "RAW MEAT SNACK",
+      "name": "Raw Ftileh Plate",
+      "description": "Premium raw veal fillet, sliced thin served with black pepper and fresh vegetables.",
+      "price_usd": 18.0,
+      "is_available": true,
+      "name_ar": "صحن فتيلة نية",
+      "description_ar": "فتيلة لحم نية"
+    },
+    {
+      "category": "Fresh Raw Meat",
+      "group": "RAW MEAT SNACK",
+      "name": "Lamb Liver Plate",
+      "description": "Chopped raw lamb liver, lamb fat and black pepper served with fresh vegetables.",
+      "price_usd": 15.0,
+      "is_available": true,
+      "name_ar": "صحن سودة غنم",
+      "description_ar": "سودة غنم نية مع التوابل"
+    },
+    {
+      "category": "Fresh Raw Meat",
+      "group": "RAW MEAT SNACK",
+      "name": "Mixed Raw Meat Plate",
+      "description": "A curated selection of our signature raw meat plates for sharing (Malseh, Mujarmashe, Kafta, and Lamb Liver).",
+      "price_usd": 30.0,
+      "is_available": true,
+      "name_ar": "صحن لحم نيء مشكل",
+      "description_ar": "تشكيلة من اللحوم النية"
+    },
+    {
+      "category": "Frozen",
+      "group": "RETAIL FROZEN",
+      "name": "GRILLED KEBBE 3 PCS",
+      "description": "Three pieces of grilled kebbe, ready to cook at home.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "كبة مشوية 3 قطع",
+      "description_ar": "3 قطع كبة مشوية مجمدة جاهزة"
+    },
+    {
+      "category": "Frozen",
+      "group": "RETAIL FROZEN",
+      "name": "PUMPKIN KEBBE 4 PCS",
+      "description": "Four pieces of pumpkin kebbe filled with spinach and chickpeas, ready to cook.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "كبة قرع 4 قطع",
+      "description_ar": "4 قطع كبة قرع مجمدة"
+    },
+    {
+      "category": "Frozen",
+      "group": "RETAIL FROZEN",
+      "name": "MEAT KEBBE 6 PCS",
+      "description": "Six pieces of meat-filled kebbe, ready to cook at home.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "كبة لحم 6 قطع",
+      "description_ar": "6 قطع كبة لحم مجمدة"
+    },
+    {
+      "category": "Frozen",
+      "group": "RETAIL FROZEN",
+      "name": "KEBBE HALLOUM 6 PCS",
+      "description": "Six pieces of kebbe filled with halloumi cheese, ready to cook.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "كبة حلوم 6 قطع",
+      "description_ar": "6 قطع كبة حلوم مجمدة"
+    },
+    {
+      "category": "Frozen",
+      "group": "RETAIL FROZEN",
+      "name": "SHISH BARAK 24 PCS",
+      "description": "Twenty-four pieces of traditional meat-filled shish barak dumplings, frozen.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "شيش برك 24 قطعة",
+      "description_ar": "24 قطعة شيش برك مجمدة"
+    },
+    {
+      "category": "Frozen",
+      "group": "RETAIL FROZEN",
+      "name": "SAMBOUSIK BEEF 12 PCS",
+      "description": "Twelve pieces of beef-filled sambousik pastries, frozen.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "سمبوسك لحم 12 قطعة",
+      "description_ar": "12 قطعة سمبوسك لحم مجمدة"
+    },
+    {
+      "category": "Frozen",
+      "group": "RETAIL FROZEN",
+      "name": "RAKAKAT CHEESE 12 PCS",
+      "description": "Twelve pieces of cheese-filled rakakat pastry rolls, frozen.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "رقاقات جبنة 12 قطعة",
+      "description_ar": "12 قطعة رقاقات جبنة مجمدة"
+    },
+    {
+      "category": "Frozen",
+      "group": "RETAIL FROZEN",
+      "name": "SPRING ROLLS 12 PCS",
+      "description": "Twelve crispy spring rolls, frozen and ready to fry.",
+      "price_usd": 3.5,
+      "is_available": true,
+      "name_ar": "سبرينغ رولز 12 قطعة",
+      "description_ar": "12 قطعة سبرينغ رولز مجمدة"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Tawouk Plate",
+      "description": "Grilled marinated chicken skewers (2 skewers), served with grilled potato, pickles, and garlic cream.",
+      "price_usd": 14.5,
+      "is_available": true,
+      "name_ar": "صحن طاووق",
+      "description_ar": "مكعبات دجاج متبّلة ومشوية على الفحم تُقدّم مع الخضار والبطاطا"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Grilled Meat Plate",
+      "description": "Grilled lamb skewers (2 skewers) with grilled tomato, grilled onion, hummus, and biwaz.",
+      "price_usd": 21.0,
+      "is_available": true,
+      "name_ar": "صحن لحم مشوي",
+      "description_ar": "مكعبات لحم عجل متبّلة ومشوية على الفحم"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Grilled Kafta Plate",
+      "description": "Minced meat skewers (4 skewers), served with grilled tomato, grilled onion, hummus, and biwaz.",
+      "price_usd": 16.0,
+      "is_available": true,
+      "name_ar": "صحن كفتة مشوية",
+      "description_ar": "كفتة لحم متبّلة بالبصل والبقدونس مشوية على الفحم"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Kabab Plate",
+      "description": "Minced meat skewers (4 skewers), served with grilled tomato, grilled onion, hummus, and biwaz.",
+      "price_usd": 17.0,
+      "is_available": true,
+      "name_ar": "صحن كباب",
+      "description_ar": "كباب لحم عجل متبّل ومشوي على الفحم"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Kabab Orfali Plate",
+      "description": "Minced meat skewers (2 skewers) with grilled eggplant, grilled tomato, grilled onion, hummus, and biwaz.",
+      "price_usd": 16.0,
+      "is_available": true,
+      "name_ar": "صحن كباب أورفلي",
+      "description_ar": "كباب أورفلي بالبندورة والفلفل الحار"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Kabab Keshkhash Plate",
+      "description": "Minced meat skewers (4 skewers) served over a spicy tomato and green pepper sauce.",
+      "price_usd": 16.0,
+      "is_available": true,
+      "name_ar": "صحن كباب خشخاش",
+      "description_ar": "كباب خشخاش بالفلفل الحار"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Mixed Grill Plate",
+      "description": "A mix of 2 kabab skewers, 1 taouk skewer, and 1 grilled meat skewer, served with grilled tomato, grilled onion, hummus, garlic cream, and biwaz.",
+      "price_usd": 26.0,
+      "is_available": true,
+      "name_ar": "صحن مشاوي مشكلة",
+      "description_ar": "تشكيلة من الطاووق، الكفتة، الكباب واللحم المشوي"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Grilled Kafta 0.5 KG",
+      "description": "10 minced meat skewers served with grilled tomato, grilled onion, and biwaz.",
+      "price_usd": 32.0,
+      "is_available": true,
+      "name_ar": "كفتة مشوية نصف كيلو",
+      "description_ar": "نصف كيلو كفتة مشوية على الفحم"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Tawouk 0.5 KG",
+      "description": "5 grilled marinated chicken skewers with grilled potato, served with pickles and garlic cream.",
+      "price_usd": 27.5,
+      "is_available": true,
+      "name_ar": "طاووق نصف كيلو",
+      "description_ar": "نصف كيلو طاووق دجاج مشوي"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Kabab 0.5 KG",
+      "description": "10 minced meat skewers served with grilled tomato, grilled onion, and biwaz.",
+      "price_usd": 32.0,
+      "is_available": true,
+      "name_ar": "كباب نصف كيلو",
+      "description_ar": "نصف كيلو كباب مشوي"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Grilled Meat 0.5 KG",
+      "description": "5 grilled lamb skewers served with grilled tomato, grilled onion, and biwaz.",
+      "price_usd": 38.0,
+      "is_available": true,
+      "name_ar": "لحم مشوي نصف كيلو",
+      "description_ar": "نصف كيلو لحم عجل مشوي"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Mixed Grill 0.5 KG",
+      "description": "2 Skewers of Shekaf,2 Skewers of Tawouk,2 Skewers of Kabab,Onion,Tomato,Biwaz",
+      "price_usd": 31.0,
+      "is_available": true,
+      "name_ar": "مشاوي مشكلة نصف كيلو",
+      "description_ar": "نصف كيلو من المشاوي المشكلة"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Riyash 0.5 KG",
+      "description": "Riyash,Tomato,Onion,Biwaz",
+      "price_usd": 38.0,
+      "is_available": true,
+      "name_ar": "ريش نصف كيلو",
+      "description_ar": "نصف كيلو ريش غنم مشوية"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Arayes Kafta",
+      "description": "Saj bread filled with seasoned kafta and grilled until crisp and golden.",
+      "price_usd": 16.0,
+      "is_available": true,
+      "name_ar": "عرايس كفتة",
+      "description_ar": "كفتة بين خبزتين مشويتين على الفحم"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Half Grilled Chicken",
+      "description": "Half grilled marinated chicken with pickles and garlic cream.",
+      "price_usd": 15.0,
+      "is_available": true,
+      "name_ar": "نصف دجاج مشوي",
+      "description_ar": "نصف دجاجة مشوية على الفحم"
+    },
+    {
+      "category": "Grills",
+      "group": "GRILLED",
+      "name": "Chicken Wings",
+      "description": "Grilled marinated chicken wings (12 pcs), grilled potato, served with pickles and garlic cream.",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "جوانح دجاج",
+      "description_ar": "جوانح دجاج مشوية على الفحم"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "COFFEE RAKWA",
+      "description": "Arabic Coffee",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "قهوة ركوة",
+      "description_ar": "قهوة عربية بالركوة"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "COFFEE CUP",
+      "description": "Arabic Coffee",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "فنجان قهوة",
+      "description_ar": "فنجان قهوة عربية"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "WHITE COFFEE CUP",
+      "description": "Traditional Lebanese white coffee with orange blossom water.",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "فنجان قهوة بيضاء",
+      "description_ar": "قهوة بيضاء بماء الزهر"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "ESPRESSO",
+      "description": "Concentrated Form of Coffee Beans",
+      "price_usd": 3.5,
+      "is_available": true,
+      "name_ar": "اسبريسو",
+      "description_ar": "اسبريسو إيطالي"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "ESPRESSO LONGO",
+      "description": "A longer, milder espresso shot with more water.",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "اسبريسو لونغو",
+      "description_ar": "اسبريسو طويل"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "DOPPIO",
+      "description": "Double Shot Espresso",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "دوبيو",
+      "description_ar": "اسبريسو مضاعف"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "NESCAFE",
+      "description": "One Sachet of Gold/Red Nescafe , two Sachet of Coffeemate and  Hot water aside , served with sugar",
+      "price_usd": 2.75,
+      "is_available": true,
+      "name_ar": "نسكافيه",
+      "description_ar": "نسكافيه ساخن"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "CAPPUCCINO",
+      "description": "Double shot espresso with steamed Milk",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "كابتشينو",
+      "description_ar": "كابتشينو إيطالي"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "HOT CHOCOLATE",
+      "description": "Milk Chocolate with Milk",
+      "price_usd": 7.5,
+      "is_available": true,
+      "name_ar": "شوكولاتة ساخنة",
+      "description_ar": "شوكولاتة ساخنة بالحليب"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "AMERICANO",
+      "description": "Espresso diluted with hot water for a smooth, mild coffee.",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "أمريكانو",
+      "description_ar": "قهوة أمريكانو"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "CAFE LATTE",
+      "description": "One shot Espresso with steamed Milk",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "كافيه لاتيه",
+      "description_ar": "لاتيه بالحليب"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "FLAVORED LATTE",
+      "description": "Flavored with Blue Coracao or Caramel or Hazelnuts or Vanilla",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "لاتيه بالنكهة",
+      "description_ar": "لاتيه بنكهة الاختيار"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "MOCHA",
+      "description": "One shot Espresso with steamed Milk and Chocolate Sauce",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "موكا",
+      "description_ar": "قهوة موكا بالشوكولاتة"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "MACCHIATTO",
+      "description": "Espresso Toped with Foam Milk",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "ماكياتو",
+      "description_ar": "اسبريسو مع رغوة الحليب"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "TEA KETTLE",
+      "description": "Lipton Black Tea, Sugar and Hot water aside",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "إبريق شاي",
+      "description_ar": "إبريق شاي ساخن"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "TEA KETTLE KHAMIR",
+      "description": "Black Tea",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "إبريق شاي خمير",
+      "description_ar": "إبريق شاي خمير ساخن"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "YELLOW TEA CUP",
+      "description": "Black tea, Sugar and Hot water aside",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "فنجان شاي أصفر",
+      "description_ar": "شاي أصفر ساخن"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "TEA KHAMIR CUP",
+      "description": "Black tea",
+      "price_usd": 1.5,
+      "is_available": true,
+      "name_ar": "فنجان شاي خمير",
+      "description_ar": "شاي خمير ساخن"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "GREEN TEA CUP",
+      "description": "Green tea, Sugar and Hot water aside",
+      "price_usd": 2.0,
+      "is_available": true,
+      "name_ar": "فنجان شاي أخضر",
+      "description_ar": "شاي أخضر ساخن"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "ZHOURAT",
+      "description": "A soothing herbal infusion of dried wildflowers.",
+      "price_usd": 2.0,
+      "is_available": true,
+      "name_ar": "زهورات",
+      "description_ar": "مشروب زهورات ساخن"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "CHAMOMILE",
+      "description": "Calming chamomile herbal tea.",
+      "price_usd": 2.0,
+      "is_available": true,
+      "name_ar": "بابونج",
+      "description_ar": "مشروب البابونج الساخن"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "GINGER",
+      "description": "Warming fresh ginger herbal tea.",
+      "price_usd": 2.0,
+      "is_available": true,
+      "name_ar": "زنجبيل",
+      "description_ar": "مشروب الزنجبيل الساخن"
+    },
+    {
+      "category": "Hot Beverages",
+      "group": "HOT BEVERAGE",
+      "name": "CUMIN AND LEMON",
+      "description": "Traditional Lebanese cumin and lemon herbal tea.",
+      "price_usd": 1.5,
+      "is_available": true,
+      "name_ar": "كمون وليمون",
+      "description_ar": "مشروب الكمون والليمون الساخن"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Mix Pastries",
+      "description": "Pizza, spinach, backleh, keshek",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "معجنات مشكلة قاطع",
+      "description_ar": "بيتزا، سبانخ، بقلة، كشك"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Pumpkin Kebbe",
+      "description": "Pumpkin kebbe filled with spinach and chickpeas.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "كبة قرع",
+      "description_ar": "كبة القرع المحشوة بالسبانخ والحمص"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Mixed Mouajanet",
+      "description": "Assortment of cheese rolls, sambsousik and kebbe.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "معجنات مشكلة مقلية",
+      "description_ar": "تشكيلة من لفائف الجبن، السمبوسك، والكبة"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Batata Harra",
+      "description": "Spicy potatoes with garlic and coriander.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "بطاطا حرة",
+      "description_ar": "بطاطا حارة بالثوم والكزبرة"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "French Fries",
+      "description": "Crispy golden fries.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "بطاطا مقلية",
+      "description_ar": "بطاطا مقلية ذهبية ومقرمشة"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Grilled Potato",
+      "description": "Grilled potato slices served with garlic cream.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "بطاطا مشوية",
+      "description_ar": "شرائح بطاطا مشوية تُقدَّم مع كريمة الثوم"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Grilled Rakakat Cheese",
+      "description": "Grilled cheese-filled pastries",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "رقاقات جبن مشوية",
+      "description_ar": "معجنات مشوية محشوة بالجبن"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Chicken Wings Provencal",
+      "description": "Marinated chicken wings with garlic, parsley, and lemon.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "جوانح بروفنسال",
+      "description_ar": "أجنحة دجاج متبّلة بالثوم والبقدونس والليمون"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Makanek",
+      "description": "Fried Lebanese sausage in pomegranate molasses.",
+      "price_usd": 13.0,
+      "is_available": true,
+      "name_ar": "مقانق",
+      "description_ar": "مقانق لبنانية مقلية مع دبس الرمان"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Sujuk",
+      "description": "Fried Lebanese sausage with tomato, onion and green pepper.",
+      "price_usd": 13.0,
+      "is_available": true,
+      "name_ar": "سجق",
+      "description_ar": "سجق لبناني نيء للطبخ"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Meat Ras Asfour",
+      "description": "Sautéed veal cubes with pomegranate molasses.",
+      "price_usd": 15.0,
+      "is_available": true,
+      "name_ar": "لحمة راس عصفور",
+      "description_ar": "مكعبات لحم عجل مقليّة مع دبس الرمان"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Kabab Karaz",
+      "description": "Kabab balls with cherry jam topped with almonds and fresh pomegranate.",
+      "price_usd": 21.0,
+      "is_available": true,
+      "name_ar": "كباب كرز",
+      "description_ar": "كرات كباب مع مربى الكرز، مغطاة باللوز والرمان الطازج"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Cheese Rolls",
+      "description": "Fried cheese-filled pastries.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "رقاقات جبنة",
+      "description_ar": "معجنات مقلية محشوة بالجبن"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Meat Sambousek",
+      "description": "Meat-filled pastries.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "سمبوسك لحمة",
+      "description_ar": "معجنات محشوة باللحم"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Grilled Halloumi Plate",
+      "description": "Perfectly grilled, farm-fresh halloumi cheese.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "صحن حلوم مشوي",
+      "description_ar": "جبن حلومي طازج من المزرعة مشوي"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Fried Kebbe",
+      "description": "Filled with spiced meat and onion.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "كبة مقلية",
+      "description_ar": "محشوة باللحم المتبّل والبصل"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Kebbe Sajiyeh",
+      "description": "Our special grilled kebbe filled with spiced meat and onion.",
+      "price_usd": 11.0,
+      "is_available": true,
+      "name_ar": "كبة صاجية",
+      "description_ar": "الكبة المشوية الخاصة بنا محشوة باللحم المتبّل والبصل"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Fried Lamb Liver",
+      "description": "Sautéed lamb liver with lemon and pomegranate molasses.",
+      "price_usd": 13.0,
+      "is_available": true,
+      "name_ar": "سودة غنم مقلية",
+      "description_ar": "كبدة غنم مقلّية مع الليمون ودبس الرمان"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Nkhaat Plate",
+      "description": "Sautéed lamb brain, a traditional Lebanese delicacy.",
+      "price_usd": 11.0,
+      "is_available": true,
+      "name_ar": "صحن نخاعات",
+      "description_ar": "نخاعات الخروف المسلوقة مع الليمون والثوم"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "Sheep Eggs",
+      "description": "Sautéed sheep eggs with lemon and butter.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "بيض غنم",
+      "description_ar": "بيض الغنم المقلي مع الليمون والزبدة"
+    },
+    {
+      "category": "Hot Mezza",
+      "group": "HOT MEZZA",
+      "name": "OVEN BAKED FETTA",
+      "description": "Creamy feta cheese baked in the oven with herbs and olive oil.",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "جبنة فيتا بالفرن",
+      "description_ar": "جبنة فيتا بالفرن مع البندورة والزيتون والأعشاب"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Taouk Sandwich",
+      "description": "Grilled marinated chicken skewer, garlic cream, pickled cucumber, and fries served in saj bread (white or red taouk).",
+      "price_usd": 6.5,
+      "is_available": true,
+      "name_ar": "ساندويش طاووق",
+      "description_ar": "طاووق دجاج مع الخضار والثومية في خبز الصاج"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Grilled Chicken Sandwich",
+      "description": "Grilled marinated chicken, garlic cream, pickled cucumber, and fries served in saj bread.",
+      "price_usd": 7.5,
+      "is_available": true,
+      "name_ar": "ساندويش دجاج مشوي",
+      "description_ar": "دجاج مشوي مع الخضار في خبز الصاج"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Shekaf Sandwich",
+      "description": "Grilled fresh lamb skewers, hummus, tomato, onions, and parsley served in saj bread.",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "ساندويش شقف",
+      "description_ar": "شقف لحم مشوي في خبز الصاج"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Kafta Sandwich",
+      "description": "Grilled kafta skewers, hummus, tomato, onions, and parsley served in saj bread.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "ساندويش كفتة",
+      "description_ar": "كفتة مشوية مع البندورة والبصل والبقدونس"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Kabab Sandwich",
+      "description": "Grilled kabab skewers, hummus, tomato, onions, and parsley served in saj bread.",
+      "price_usd": 6.5,
+      "is_available": true,
+      "name_ar": "ساندويش كباب",
+      "description_ar": "كباب مشوي مع البندورة والبصل"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Orfali Kabab Sandwich",
+      "description": "Grilled kabab skewer, hummus, parsley, grilled eggplant, tomato, and onion served in saj bread.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "ساندويش كباب أورفلي",
+      "description_ar": "كباب أورفلي مع البندورة"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Keshkash Kabab Sandwich",
+      "description": "Grilled kabab skewer with a spicy tomato and green pepper sauce served in saj bread.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "ساندويش كباب خشخاش",
+      "description_ar": "كباب خشخاش بالفلفل الحار"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Sujuk Sandwich",
+      "description": "Lebanese spicy sausage skewer, garlic cream, tomato, and pickled cucumber served in saj bread.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "ساندويش سجق",
+      "description_ar": "سجق مع البندورة والفلفل"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Makanek Sandwich",
+      "description": "Lebanese sausage skewer, hummus, tomato, pickled cucumber, and pomegranate molasses served in saj bread.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "ساندويش مقانق",
+      "description_ar": "مقانق مع البندورة والصلصة الحارة"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Fried Lamb Liver Sandwich",
+      "description": "Sautéed fried lamb liver, garlic cream, mint, and tomato served in saj bread.",
+      "price_usd": 8.5,
+      "is_available": true,
+      "name_ar": "ساندويش سودة غنم",
+      "description_ar": "سودة غنم مقلية في خبز الصاج"
+    },
+    {
+      "category": "Hot Sandwiches",
+      "group": "SANDWICHES",
+      "name": "Grilled Halloumi Sandwich",
+      "description": "Grilled halloum, cucumber, olives, and mint served in saj bread.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "ساندويش حلوم مشوي",
+      "description_ar": "حلوم مشوي مع الخضار في خبز الصاج"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "HONEY JAR",
+      "description": "Pure natural farm honey.",
+      "price_usd": 45.0,
+      "is_available": true,
+      "name_ar": "جرة عسل",
+      "description_ar": "عسل طبيعي من المزرعة"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "CHILI PASTE JAR",
+      "description": "House-made spicy chili paste.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "جرة معجون فلفل",
+      "description_ar": "معجون فلفل حار"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "KESHEK JAR",
+      "description": "Traditional fermented keshek spread made from our farm milk.",
+      "price_usd": 19.0,
+      "is_available": true,
+      "name_ar": "جرة كشك",
+      "description_ar": "كشك طبيعي مجفف"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "KESHEK EXTRA JAR",
+      "description": "Extra-rich traditional fermented keshek spread.",
+      "price_usd": 19.0,
+      "is_available": true,
+      "name_ar": "جرة كشك إكسترا",
+      "description_ar": "كشك إكسترا طبيعي"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "GHEE JAR",
+      "description": "Pure clarified butter made from fresh farm milk.",
+      "price_usd": 13.0,
+      "is_available": true,
+      "name_ar": "جرة سمنة",
+      "description_ar": "سمنة بلدية طبيعية"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "KAWARMA JAR",
+      "description": "Our signature preserved meat in fat, a Lebanese tradition.",
+      "price_usd": 24.0,
+      "is_available": true,
+      "name_ar": "جرة قاورما",
+      "description_ar": "قاورما لحم طبيعية"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "CHANKLISH JAR",
+      "description": "House-made chanklish cheese with signature spices in a jar.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "جرة شنكليش",
+      "description_ar": "شنكليش معتّق"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "AMBARISS JAR",
+      "description": "Aged fermented goat labneh, a Baalbek tradition, in a jar.",
+      "price_usd": 15.0,
+      "is_available": true,
+      "name_ar": "جرة قمبريس",
+      "description_ar": "قمبريس معتّق"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "NABOULSI JAR",
+      "description": "Traditional Nabulsi white cheese preserved in a jar.",
+      "price_usd": 7.5,
+      "is_available": true,
+      "name_ar": "جرة نابلسي",
+      "description_ar": "جبنة نابلسي في جرة"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "COW LABNEH WITH OIL JAR",
+      "description": "Creamy cow labneh preserved in extra virgin olive oil.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "جرة لبنة بقر بالزيت",
+      "description_ar": "لبنة بقر معتّقة بزيت الزيتون"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "COW LABNEH WITH ZAATAR JAR",
+      "description": "Creamy cow labneh mixed with za'atar in a jar.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "جرة لبنة بقر بالزعتر",
+      "description_ar": "لبنة بقر بالزعتر"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "COW LABNEH WITH MINT JAR",
+      "description": "Creamy cow labneh infused with dried mint in a jar.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "جرة لبنة بقر بالنعنع",
+      "description_ar": "لبنة بقر بالنعنع"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "COW LABNEH WITH BLACK SEEDS JAR",
+      "description": "Creamy cow labneh with black seeds in a jar.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "جرة لبنة بقر بالحبة السوداء",
+      "description_ar": "لبنة بقر بالحبة السوداء"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "SPICY COW LABNEH JAR",
+      "description": "Creamy cow labneh with a spicy kick in a jar.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "جرة لبنة بقر حارة",
+      "description_ar": "لبنة بقر حارة"
+    },
+    {
+      "category": "Jar",
+      "group": "RETAIL JAR",
+      "name": "GOAT LABNEH WITH OIL JAR",
+      "description": "Creamy goat labneh preserved in extra virgin olive oil.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "جرة لبنة ماعز بالزيت",
+      "description_ar": "لبنة ماعز معتّقة بزيت الزيتون"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "LABAN 180 GR",
+      "description": "Fresh farm laban in a small 180g serving.",
+      "price_usd": 0.65,
+      "is_available": true,
+      "name_ar": "لبن 180 غرام",
+      "description_ar": "لبن 180 غرام"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "COW LABAN 1 KG",
+      "description": "Fresh farm cow laban, 1 kilogram.",
+      "price_usd": 2.5,
+      "is_available": true,
+      "name_ar": "لبن بقر 1 كيلو",
+      "description_ar": "لبن بقر طازج 1 كيلو"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "GOAT LABAN 1 KG",
+      "description": "Fresh farm goat laban, 1 kilogram.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "لبن ماعز 1 كيلو",
+      "description_ar": "لبن ماعز طازج 1 كيلو"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "SHEEP LABAN 1 KG",
+      "description": "Fresh farm sheep laban, 1 kilogram.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "لبن غنم 1 كيلو",
+      "description_ar": "لبن غنم طازج 1 كيلو"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "COW LABAN 2 KG",
+      "description": "Fresh farm cow laban, 2 kilograms.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "لبن بقر 2 كيلو",
+      "description_ar": "لبن بقر طازج 2 كيلو"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "GOAT LABAN 2 KG",
+      "description": "Fresh farm goat laban, 2 kilograms.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "لبن ماعز 2 كيلو",
+      "description_ar": "لبن ماعز طازج 2 كيلو"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "SHEEP LABAN 2 KG",
+      "description": "Fresh farm sheep laban, 2 kilograms.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "لبن غنم 2 كيلو",
+      "description_ar": "لبن غنم طازج 2 كيلو"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "COW LABAN 4 KG",
+      "description": "Fresh farm cow laban, 4 kilograms.",
+      "price_usd": 8.0,
+      "is_available": true,
+      "name_ar": "لبن بقر 4 كيلو",
+      "description_ar": "لبن بقر طازج 4 كيلو"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "GOAT LABAN 4 KG",
+      "description": "Fresh farm goat laban, 4 kilograms.",
+      "price_usd": 15.0,
+      "is_available": true,
+      "name_ar": "لبن ماعز 4 كيلو",
+      "description_ar": "لبن ماعز طازج 4 كيلو"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "Laban Ayran",
+      "description": "Chilled, refreshing salted laban drink.",
+      "price_usd": 1.5,
+      "is_available": true,
+      "name_ar": "لبن عيران",
+      "description_ar": "لبن عيران بارد"
+    },
+    {
+      "category": "Laban",
+      "group": "RETAIL LABAN NV",
+      "name": "Laban Ayran 1 L",
+      "description": "Chilled, refreshing salted laban drink, 1 liter bottle.",
+      "price_usd": 3.0,
+      "is_available": true,
+      "name_ar": "لبن عيران 1 ليتر",
+      "description_ar": "لبن عيران 1 ليتر"
+    },
+    {
+      "category": "Labneh",
+      "group": "RETAIL LABNEH NV",
+      "name": "COW LABNEH 0.4 KG",
+      "description": "Creamy cow labneh made from fresh farm milk, 400g.",
+      "price_usd": 2.75,
+      "is_available": true,
+      "name_ar": "لبنة بقر 400 غرام",
+      "description_ar": "لبنة بقر طازجة 400 غرام"
+    },
+    {
+      "category": "Labneh",
+      "group": "RETAIL LABNEH NV",
+      "name": "AMBARISS 0.4 KG",
+      "description": "Aged fermented goat labneh, a Baalbek tradition, 400g.",
+      "price_usd": 7.5,
+      "is_available": true,
+      "name_ar": "قمبريس 400 غرام",
+      "description_ar": "قمبريس معتّق 400 غرام"
+    },
+    {
+      "category": "Labneh",
+      "group": "RETAIL LABNEH NV",
+      "name": "GOAT LABNEH 0.4 KG",
+      "description": "Creamy goat labneh made from fresh farm milk, 400g.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "لبنة ماعز 400 غرام",
+      "description_ar": "لبنة ماعز طازجة 400 غرام"
+    },
+    {
+      "category": "Labneh",
+      "group": "RETAIL LABNEH NV",
+      "name": "COW LABNEH 1 KG",
+      "description": "Creamy cow labneh made from fresh farm milk, 1 kilogram.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "لبنة بقر 1 كيلو",
+      "description_ar": "لبنة بقر طازجة 1 كيلو"
+    },
+    {
+      "category": "Labneh",
+      "group": "RETAIL LABNEH NV",
+      "name": "DRY COW LABNEH ROLL",
+      "description": "Dried and rolled cow labneh, a traditional Lebanese preserved form.",
+      "price_usd": 3.5,
+      "is_available": true,
+      "name_ar": "رول لبنة بقر مجففة",
+      "description_ar": "رول لبنة بقر مجففة"
+    },
+    {
+      "category": "Labneh",
+      "group": "RETAIL LABNEH NV",
+      "name": "DRY GOAT LABNEH ROLL",
+      "description": "Dried and rolled goat labneh, a traditional Lebanese preserved form.",
+      "price_usd": 5.5,
+      "is_available": true,
+      "name_ar": "رول لبنة ماعز مجففة",
+      "description_ar": "رول لبنة ماعز مجففة"
+    },
+    {
+      "category": "Labneh",
+      "group": "RETAIL LABNEH NV",
+      "name": "DRY AMBARISS ROLL 200 GR",
+      "description": "Dried and rolled aged ambariss labneh, 200g.",
+      "price_usd": 7.5,
+      "is_available": true,
+      "name_ar": "رول قمبريس مجفف 200 غرام",
+      "description_ar": "رول قمبريس مجفف 200 غرام"
+    },
+    {
+      "category": "Labneh",
+      "group": "RETAIL LABNEH NV",
+      "name": "COW LABNEH TRAY",
+      "description": "Creamy cow labneh served in a tray for sharing.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "صينية لبنة بقر",
+      "description_ar": "صينية لبنة بقر كبيرة"
+    },
+    {
+      "category": "Labneh",
+      "group": "RETAIL LABNEH NV",
+      "name": "GOAT LABNEH TRAY",
+      "description": "Creamy goat labneh served in a tray for sharing.",
+      "price_usd": 8.5,
+      "is_available": true,
+      "name_ar": "صينية لبنة ماعز",
+      "description_ar": "صينية لبنة ماعز كبيرة"
+    },
+    {
+      "category": "Labneh",
+      "group": "RETAIL LABNEH NV",
+      "name": "EGGS BALADI PACK",
+      "description": "A pack of fresh organic baladi eggs from our farm.",
+      "price_usd": 3.5,
+      "is_available": true,
+      "name_ar": "علبة بيض بلدي",
+      "description_ar": "علبة بيض بلدي طازج من المزرعة"
+    },
+    {
+      "category": "Main Course",
+      "group": "MAIN COURSE",
+      "name": "Chicken Escalope",
+      "description": "Breaded fried chicken, fries, coleslaw and smoky mayo sauce.",
+      "price_usd": 17.0,
+      "is_available": true,
+      "name_ar": "اسكالوب دجاج",
+      "description_ar": "صدر دجاج مقلي مكسو بالبقسماط"
+    },
+    {
+      "category": "Main Course",
+      "group": "MAIN COURSE",
+      "name": "Kafta in Oven",
+      "description": "Oven-baked kafta with tomato, green pepper, and onion.",
+      "price_usd": 30.0,
+      "is_available": true,
+      "name_ar": "كفتة بالفرن",
+      "description_ar": "كفتة بالبطاطا والبندورة بالفرن"
+    },
+    {
+      "category": "Main Course",
+      "group": "MAIN COURSE",
+      "name": "Meat in Oven",
+      "description": "Oven-baked meat with tomato, green pepper, and onion.",
+      "price_usd": 30.0,
+      "is_available": true,
+      "name_ar": "لحمة بالفرن",
+      "description_ar": "لحم عجل بالخضار بالفرن"
+    },
+    {
+      "category": "Main Course",
+      "group": "MAIN COURSE",
+      "name": "Chicken Rice",
+      "description": "Grilled marinated chicken cooked with rice, cashews, and demi-glace sauce.",
+      "price_usd": 18.0,
+      "is_available": true,
+      "name_ar": "رز بدجاج",
+      "description_ar": "أرز بالدجاج والمكسرات"
+    },
+    {
+      "category": "Main Course",
+      "group": "MAIN COURSE",
+      "name": "Chicken Frikeh",
+      "description": "Grilled marinated chicken, frikeh, cashews, and demi-glace sauce.",
+      "price_usd": 18.0,
+      "is_available": true,
+      "name_ar": "فريكة بدجاج",
+      "description_ar": "فريكة بالدجاج والمكسرات"
+    },
+    {
+      "category": "Main Course",
+      "group": "MAIN COURSE",
+      "name": "Meat Rice",
+      "description": "Slow-cooked lamb meat, rice, cashews and demi-glace sauce.",
+      "price_usd": 28.0,
+      "is_available": true,
+      "name_ar": "رز بلحمة",
+      "description_ar": "أرز باللحم والمكسرات"
+    },
+    {
+      "category": "Main Course",
+      "group": "MAIN COURSE",
+      "name": "Meat Frikeh",
+      "description": "Slow-cooked lamb meat, frikeh, cashews and demi-glace sauce.",
+      "price_usd": 28.0,
+      "is_available": true,
+      "name_ar": "فريكة بلحمة",
+      "description_ar": "فريكة باللحم والمكسرات"
+    },
+    {
+      "category": "Main Course",
+      "group": "MAIN COURSE",
+      "name": "Kebbe and Shish Barak",
+      "description": "Kebbe (3 pcs), shish barak (5 pcs), yogurt, garlic, and coriander served with rice.",
+      "price_usd": 14.0,
+      "is_available": true,
+      "name_ar": "كبة وشيش برك",
+      "description_ar": "كبة وشيش برك باللبن"
+    },
+    {
+      "category": "Main Course",
+      "group": "MAIN COURSE",
+      "name": "Vine Leaves and Lamb Cutlets",
+      "description": "Meat-stuffed vine leaves (18 pcs) and baby marrow (2 pcs), served with lamb cutlets (2 pcs).",
+      "price_usd": 22.0,
+      "is_available": true,
+      "name_ar": "ورق عنب وكستليتة",
+      "description_ar": "ورق عنب محشي مع كستليتة الغنم"
+    },
+    {
+      "category": "Milk",
+      "group": "RETAIL MILK NV",
+      "name": "FRESH MILK 2.5 L",
+      "description": "Fresh whole farm milk, 2.5 liters.",
+      "price_usd": 5.0,
+      "is_available": true,
+      "name_ar": "حليب طازج 2.5 ليتر",
+      "description_ar": "حليب طازج من المزرعة 2.5 ليتر"
+    },
+    {
+      "category": "Milk",
+      "group": "RETAIL MILK NV",
+      "name": "FRESH MILK 1 L",
+      "description": "Fresh whole farm milk, 1 liter.",
+      "price_usd": 2.0,
+      "is_available": true,
+      "name_ar": "حليب طازج 1 ليتر",
+      "description_ar": "حليب طازج من المزرعة 1 ليتر"
+    },
+    {
+      "category": "Mouajjanat",
+      "group": "MOUAJANAT",
+      "name": "BAKLEH 6 PCS",
+      "description": "Six pieces of purslane-filled pastries.",
+      "price_usd": 3.5,
+      "is_available": true,
+      "name_ar": "بقلة 6 قطع",
+      "description_ar": "6 قطع معجنات بقلة"
+    },
+    {
+      "category": "Mouajjanat",
+      "group": "MOUAJANAT",
+      "name": "PIZZA 6 PCS",
+      "description": "Six pieces of our mini Lebanese-style pizza pastries.",
+      "price_usd": 3.5,
+      "is_available": true,
+      "name_ar": "بيتزا 6 قطع",
+      "description_ar": "6 قطع بيتزا"
+    },
+    {
+      "category": "Mouajjanat",
+      "group": "MOUAJANAT",
+      "name": "FATAYER SPINACH 6 PCS",
+      "description": "Six pieces of spinach-filled fatayer pastries.",
+      "price_usd": 3.5,
+      "is_available": true,
+      "name_ar": "فطاير سبانخ 6 قطع",
+      "description_ar": "6 قطع فطاير سبانخ"
+    },
+    {
+      "category": "Mouajjanat",
+      "group": "MOUAJANAT",
+      "name": "FATAYER CHEESE 6 PCS",
+      "description": "Six pieces of cheese-filled fatayer pastries.",
+      "price_usd": 3.5,
+      "is_available": true,
+      "name_ar": "فطاير جبنة 6 قطع",
+      "description_ar": "6 قطع فطاير جبنة"
+    },
+    {
+      "category": "Mouajjanat",
+      "group": "MOUAJANAT",
+      "name": "KESHEK 6 PCS",
+      "description": "Six pieces of keshek-topped pastries.",
+      "price_usd": 3.5,
+      "is_available": true,
+      "name_ar": "كشك 6 قطع",
+      "description_ar": "6 قطع معجنات كشك"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW MEAT NV",
+      "name": "MAKANEK",
+      "description": "Fresh Lebanese spiced sausages, sold raw by weight.",
+      "price_usd": 21.0,
+      "is_available": true,
+      "name_ar": "مقانق",
+      "description_ar": "مقانق لبنانية مقلية مع دبس الرمان"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW MEAT NV",
+      "name": "SUJUK",
+      "description": "Fresh Lebanese spicy beef sausage, sold raw by weight.",
+      "price_usd": 21.0,
+      "is_available": true,
+      "name_ar": "سجق",
+      "description_ar": "سجق لبناني نيء للطبخ"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW MEAT NV",
+      "name": "MEAT MIX KG",
+      "description": "Premium mixed ground meat blend, per kilogram.",
+      "price_usd": 25.0,
+      "is_available": true,
+      "name_ar": "خلطة لحم كيلو",
+      "description_ar": "خلطة لحم مفروم كيلو"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW MEAT NV",
+      "name": "KEBBE NAYYEH MIX",
+      "description": "Finely ground meat mix prepared for kebbe nayyeh, per kilogram.",
+      "price_usd": 26.0,
+      "is_available": true,
+      "name_ar": "خلطة كبة نية",
+      "description_ar": "خلطة كبة نية جاهزة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW MEAT NV",
+      "name": "KAFTA MIX",
+      "description": "Seasoned minced meat mix prepared for kafta, per kilogram.",
+      "price_usd": 25.0,
+      "is_available": true,
+      "name_ar": "خلطة كفتة",
+      "description_ar": "خلطة كفتة جاهزة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW MEAT NV",
+      "name": "KABAB MIX",
+      "description": "Seasoned minced meat mix prepared for kabab, per kilogram.",
+      "price_usd": 25.0,
+      "is_available": true,
+      "name_ar": "خلطة كباب",
+      "description_ar": "خلطة كباب جاهزة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW MEAT NV",
+      "name": "BURGER MIX",
+      "description": "Premium ground meat blend prepared for burgers, per kilogram.",
+      "price_usd": 26.0,
+      "is_available": true,
+      "name_ar": "خلطة برغر",
+      "description_ar": "خلطة برغر جاهزة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "GHAMMEH",
+      "description": "Traditional stuffed lamb stomach, a classic Lebanese dish.",
+      "price_usd": 18.0,
+      "is_available": true,
+      "name_ar": "غمة",
+      "description_ar": "غمة محشوة بالأرز واللحم"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP EGGS",
+      "description": "Fresh sheep testicles, a traditional Lebanese delicacy.",
+      "price_usd": 15.0,
+      "is_available": true,
+      "name_ar": "بيض غنم",
+      "description_ar": "بيض الغنم المقلي مع الليمون والزبدة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP FAKHD",
+      "description": "Premium sheep leg cut, sold by weight.",
+      "price_usd": 23.0,
+      "is_available": true,
+      "name_ar": "فخدة غنم",
+      "description_ar": "فخدة غنم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP LSEN",
+      "description": "Fresh sheep tongue, sold by weight.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "لسان غنم",
+      "description_ar": "لسان غنم طازج"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP MEAT",
+      "description": "Premium fresh sheep meat, sold by weight.",
+      "price_usd": 28.0,
+      "is_available": true,
+      "name_ar": "لحم غنم",
+      "description_ar": "لحم غنم طازج"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP LEYYEH",
+      "description": "Sheep tail fat, a prized ingredient in Lebanese cooking.",
+      "price_usd": 15.0,
+      "is_available": true,
+      "name_ar": "لية غنم",
+      "description_ar": "لية غنم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP NECK",
+      "description": "Fresh sheep neck cut, rich in flavor, sold by weight.",
+      "price_usd": 22.5,
+      "is_available": true,
+      "name_ar": "رقبة غنم",
+      "description_ar": "رقبة غنم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP BRAIN",
+      "description": "Fresh sheep brain, a traditional Lebanese delicacy.",
+      "price_usd": 4.5,
+      "is_available": true,
+      "name_ar": "نخاعات غنم",
+      "description_ar": "نخاعات غنم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP REYASH",
+      "description": "Fresh sheep ribs, sold by weight.",
+      "price_usd": 32.0,
+      "is_available": true,
+      "name_ar": "ريش غنم",
+      "description_ar": "ريش غنم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP KIDNEYS",
+      "description": "Fresh sheep kidneys, sold by weight.",
+      "price_usd": 18.0,
+      "is_available": true,
+      "name_ar": "كلاوي غنم",
+      "description_ar": "كلاوي غنم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP FAWAREGH",
+      "description": "Fresh sheep intestines, used in traditional Lebanese dishes.",
+      "price_usd": 4.0,
+      "is_available": true,
+      "name_ar": "فوارغ غنم",
+      "description_ar": "فوارغ غنم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP MAWZET BAT BONES",
+      "description": "Sheep shank with bone, slow-cook cut, sold by weight.",
+      "price_usd": 22.0,
+      "is_available": true,
+      "name_ar": "موزات غنم بالعظم",
+      "description_ar": "موزات غنم بالعظم"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP DORAN",
+      "description": "Fresh sheep lung, a traditional Lebanese ingredient.",
+      "price_usd": 16.0,
+      "is_available": true,
+      "name_ar": "دوران غنم",
+      "description_ar": "دوران غنم طازج"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP ASAEES",
+      "description": "Fresh sheep testicles, sold by weight.",
+      "price_usd": 15.0,
+      "is_available": true,
+      "name_ar": "عصاعص غنم",
+      "description_ar": "عصاعص غنم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP HEAD",
+      "description": "Whole sheep head, a traditional Lebanese delicacy.",
+      "price_usd": 6.5,
+      "is_available": true,
+      "name_ar": "راس غنم",
+      "description_ar": "راس غنم طازج"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP RIBS WITH BONES",
+      "description": "Fresh sheep ribs with bones, sold by weight.",
+      "price_usd": 20.0,
+      "is_available": true,
+      "name_ar": "ريش غنم بالعظم",
+      "description_ar": "ريش غنم بالعظم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP MAKADEM",
+      "description": "Sheep trotters, slow-cooked for a rich traditional flavor.",
+      "price_usd": 18.0,
+      "is_available": true,
+      "name_ar": "مقادم غنم",
+      "description_ar": "مقادم غنم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP COCOTAIL",
+      "description": "Sheep offal mix, sold by weight.",
+      "price_usd": 18.0,
+      "is_available": true,
+      "name_ar": "كوكتيل غنم",
+      "description_ar": "كوكتيل لحم غنم مشكل"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW SHEEP NV",
+      "name": "SHEEP LIVER",
+      "description": "Fresh sheep liver, sold by weight.",
+      "price_usd": 28.0,
+      "is_available": true,
+      "name_ar": "سودة غنم",
+      "description_ar": "سودة غنم طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL ASOUS",
+      "description": "Fresh veal shank, ideal for slow cooking, sold by weight.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "عصوص عجل",
+      "description_ar": "عصوص لحم عجل طازج"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL BURGER",
+      "description": "Premium ground veal mix prepared for burgers.",
+      "price_usd": 22.0,
+      "is_available": true,
+      "name_ar": "برغر عجل",
+      "description_ar": "برغر لحم عجل طازج"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL BRAIN",
+      "description": "Fresh veal brain, a traditional Lebanese delicacy.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "نخاعات عجل",
+      "description_ar": "نخاعات عجل طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL ASAB",
+      "description": "Fresh veal tendons, used in traditional slow-cooked dishes.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "عصب عجل",
+      "description_ar": "عصب عجل طازج"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL MEAT",
+      "description": "Premium fresh veal meat, sold by weight.",
+      "price_usd": 20.0,
+      "is_available": true,
+      "name_ar": "لحم عجل",
+      "description_ar": "لحم عجل طازج"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL LIVER",
+      "description": "Fresh veal liver, sold by weight.",
+      "price_usd": 17.0,
+      "is_available": true,
+      "name_ar": "سودة عجل",
+      "description_ar": "سودة عجل طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL LSEN",
+      "description": "Fresh veal tongue, sold by weight.",
+      "price_usd": 13.0,
+      "is_available": true,
+      "name_ar": "لسان عجل",
+      "description_ar": "لسان عجل طازج"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL SHEHBEYEH",
+      "description": "Premium veal shoulder cut, sold by weight.",
+      "price_usd": 22.0,
+      "is_available": true,
+      "name_ar": "شحبية عجل",
+      "description_ar": "شحبية عجل طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL FILET",
+      "description": "Premium veal fillet, the finest cut, sold by weight.",
+      "price_usd": 30.0,
+      "is_available": true,
+      "name_ar": "فيليه عجل",
+      "description_ar": "فيليه عجل طازج"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL BALADI EXTRA",
+      "description": "Premium extra-quality local veal, sold by weight.",
+      "price_usd": 22.0,
+      "is_available": true,
+      "name_ar": "عجل بلدي إكسترا",
+      "description_ar": "لحم عجل بلدي ممتاز"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "VEAL REYASH",
+      "description": "Fresh veal ribs, sold by weight.",
+      "price_usd": 20.0,
+      "is_available": true,
+      "name_ar": "ريش عجل",
+      "description_ar": "ريش عجل طازجة"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "KEBBE NAYYEH VEAL",
+      "description": "Finely ground veal mix prepared for kebbe nayyeh.",
+      "price_usd": 22.0,
+      "is_available": true,
+      "name_ar": "كبة نية عجل",
+      "description_ar": "كبة نية بلحم العجل"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "KAFTA VEAL",
+      "description": "Seasoned ground veal mix prepared for kafta.",
+      "price_usd": 22.0,
+      "is_available": true,
+      "name_ar": "كفتة عجل",
+      "description_ar": "كفتة بلحم العجل"
+    },
+    {
+      "category": "Raw Meat",
+      "group": "RAW VEAL NV",
+      "name": "KABAB VEAL",
+      "description": "Seasoned ground veal mix prepared for kabab.",
+      "price_usd": 22.0,
+      "is_available": true,
+      "name_ar": "كباب عجل",
+      "description_ar": "كباب بلحم العجل"
+    },
+    {
+      "category": "Salads",
+      "group": "SALAD",
+      "name": "Tabbouleh",
+      "description": "Chopped parsley, tomato, onions, burgul, lemon, and extra virgin olive oil dressing.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "تبولة",
+      "description_ar": "بقدونس مفروم، بندورة، بصل، برغل، مع تتبيلة الليمون وزيت الزيتون البكر الممتاز"
+    },
+    {
+      "category": "Salads",
+      "group": "SALAD",
+      "name": "Fattoush",
+      "description": "Fresh mixed greens, tomato, cucumber, radish, fresh pomegranate, fried Arabic bread, and a pomegranate molasses dressing.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "فتوش",
+      "description_ar": "خضار طازجة مشكلة، بندورة، خيار، فجل، رمان طازج، خبز عربي مقلي، مع تتبيلة دبس الرمان"
+    },
+    {
+      "category": "Salads",
+      "group": "SALAD",
+      "name": "Greek Salad",
+      "description": "Feta cheese, tomato, pepper, cucumber, olives, onion and extra virgin olive oil dressing.",
+      "price_usd": 9.0,
+      "is_available": true,
+      "name_ar": "سلطة يونانية",
+      "description_ar": "جبن فيتا، بندورة، فلفل، خيار، زيتون، بصل مع تتبيلة زيت الزيتون البكر الممتاز"
+    },
+    {
+      "category": "Salads",
+      "group": "SALAD",
+      "name": "Rocca & Beetroot Salad",
+      "description": "Rocca, purslane, beetroot, onion, and extra virgin olive oil dressing.",
+      "price_usd": 7.0,
+      "is_available": true,
+      "name_ar": "سلطة روكا وشمندر",
+      "description_ar": "جرجير، بقدونس البحري، شمندر، بصل مع تتبيلة زيت الزيتون البكر الممتاز"
+    },
+    {
+      "category": "Salads",
+      "group": "SALAD",
+      "name": "Rocca, Thyme & Bakleh",
+      "description": "Rocca, thyme, purslane, tomato, onion, and extra virgin olive oil dressing.",
+      "price_usd": 6.0,
+      "is_available": true,
+      "name_ar": "سلطة روكا، زعتر، بقلة",
+      "description_ar": "جرجير، زعتر، بقدونس البحري، بندورة، بصل مع تتبيلة زيت الزيتون البكر الممتاز"
+    },
+    {
+      "category": "Salads",
+      "group": "SALAD",
+      "name": "Goat Labneh Salad",
+      "description": "Goat labneh balls coated with cranberries, green apples, walnuts, lollo rosso verde with balsamic dressing",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "سلطة لبنة ماعز",
+      "description_ar": "سلطة الجرجير مع لبنة الماعز والمكسرات"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Signature Sfiha Dozen",
+      "description": "A mix of veal and lamb meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 8.5,
+      "is_available": true,
+      "name_ar": "صفيحة سيغنتشر دزينة",
+      "description_ar": "دزينة صفيحة سيغنتشر باللحم"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Signature Sfiha 0.5 KG",
+      "description": "A mix of veal and lamb meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 19.0,
+      "is_available": true,
+      "name_ar": "صفيحة سيغنتشر نصف كيلو",
+      "description_ar": "نصف كيلو صفيحة سيغنتشر"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Signature Sfiha 1 KG",
+      "description": "A mix of veal and lamb meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 36.0,
+      "is_available": true,
+      "name_ar": "صفيحة سيغنتشر 1 كيلو",
+      "description_ar": "1 كيلو صفيحة سيغنتشر"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Lamb Sfiha Dozen",
+      "description": "Lamb meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 10.0,
+      "is_available": true,
+      "name_ar": "صفيحة غنم دزينة",
+      "description_ar": "دزينة صفيحة بلحم الغنم"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Lamb Sfiha 0.5 KG",
+      "description": "Lamb meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 21.0,
+      "is_available": true,
+      "name_ar": "صفيحة غنم نصف كيلو",
+      "description_ar": "نصف كيلو صفيحة بلحم الغنم"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Lamb Sfiha 1 KG",
+      "description": "Lamb meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 38.0,
+      "is_available": true,
+      "name_ar": "صفيحة غنم 1 كيلو",
+      "description_ar": "1 كيلو صفيحة بلحم الغنم"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Signature Round Sfiha Dozen",
+      "description": "A mix of veal and lamb meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 12.0,
+      "is_available": true,
+      "name_ar": "صفيحة سيغنتشر مدورة دزينة",
+      "description_ar": "دزينة صفيحة سيغنتشر مدورة"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Signature Round Sfiha 0.5 KG",
+      "description": "A blend of veal and lamb meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 20.0,
+      "is_available": true,
+      "name_ar": "صفيحة سيغنتشر مدورة نصف كيلو",
+      "description_ar": "نصف كيلو صفيحة سيغنتشر مدورة"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Lamb Round Sfiha Dozen",
+      "description": "Lamb meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 13.0,
+      "is_available": true,
+      "name_ar": "صفيحة غنم مدورة دزينة",
+      "description_ar": "دزينة صفيحة غنم مدورة"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Veal Sfiha Dozen",
+      "description": "Veal meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 7.5,
+      "is_available": true,
+      "name_ar": "صفيحة عجل دزينة",
+      "description_ar": "دزينة صفيحة بلحم العجل"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Veal Round Sfiha Dozen",
+      "description": "Veal meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 11.0,
+      "is_available": true,
+      "name_ar": "صفيحة عجل مدورة دزينة",
+      "description_ar": "دزينة صفيحة عجل مدورة"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Signature Round Sfiha 1KG",
+      "description": "A blend of veal and lamb meat, tomato, onion, and pepper with our signature blend of spices.",
+      "price_usd": 38.0,
+      "is_available": true,
+      "name_ar": "صفيحة سيغنتشر مدورة 1 كيلو",
+      "description_ar": "1 كيلو صفيحة سيغنتشر مدورة"
+    },
+    {
+      "category": "Sfiha Experts",
+      "group": "SFIHA",
+      "name": "Pickles & Lemon",
+      "description": "Fresh pickles and lemon wedges served as a side.",
+      "price_usd": 1.5,
+      "is_available": true,
+      "name_ar": "كبيس وليمون",
+      "description_ar": "كبيس مشكل مع شرائح الليمون"
+    }
+  ]
+}

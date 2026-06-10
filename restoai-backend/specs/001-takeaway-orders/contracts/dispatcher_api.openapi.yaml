@@ -1,0 +1,445 @@
+openapi: 3.0.3
+info:
+  title: RestoAI Dispatcher API
+  version: 1.0.0
+  description: |
+    Internal HTTP surface consumed by the dispatcher dashboard. This contract
+    is the locked surface that a Stitch-generated React UI will later
+    consume. Every confirmed-order mutation that affects POS state goes
+    through this API; nothing else in RestoAI is permitted to flip an
+    order's `state` to `entered_in_pos`.
+servers:
+  - url: http://localhost:8000
+    description: Local docker compose
+security:
+  - bearerAuth: []
+
+paths:
+  /api/dispatcher/orders:
+    get:
+      summary: List orders awaiting dispatcher action
+      description: |
+        Returns confirmed orders in `awaiting_dispatcher_review` state,
+        newest first. Supports filtering by flag.
+      parameters:
+        - name: flag
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [out_of_zone_warning]
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, default: 50, maximum: 200 }
+      responses:
+        "200":
+          description: Order queue
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items: { $ref: "#/components/schemas/OrderSummary" }
+
+  /api/dispatcher/orders/{order_id}:
+    get:
+      summary: Get a single order's full detail
+      parameters:
+        - { name: order_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrderDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      summary: Edit a confirmed order
+      description: |
+        FR-021. Allows the dispatcher to amend items, quantities,
+        customizations, fulfillment, or address before marking the order as
+        entered in the POS. Edits append a DispatcherAction(action="edit")
+        with the diff.
+      parameters:
+        - { name: order_id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrderEditRequest" }
+      responses:
+        "200":
+          description: Edited
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrderDetail" }
+        "409":
+          description: Order is no longer editable (terminal state).
+
+  /api/dispatcher/orders/{order_id}/entered-in-pos:
+    post:
+      summary: Mark order as entered in Omega POS
+      description: |
+        FR-022, FR-023. ONLY this endpoint transitions an order to
+        `entered_in_pos`. Idempotent — second call returns 200 with no
+        further effect.
+      parameters:
+        - { name: order_id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dispatcher_name]
+              properties:
+                dispatcher_name: { $ref: "#/components/schemas/DispatcherName" }
+      responses:
+        "200":
+          description: Marked
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrderDetail" }
+        "400":
+          description: Missing or invalid dispatcher_name
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/dispatcher/orders/{order_id}/cancel:
+    post:
+      summary: Cancel an order (terminal)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dispatcher_name, reason]
+              properties:
+                dispatcher_name: { $ref: "#/components/schemas/DispatcherName" }
+                reason: { type: string, maxLength: 500 }
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrderDetail" }
+        "400":
+          description: Missing or invalid dispatcher_name
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/dispatcher/escalations:
+    get:
+      summary: List chats awaiting a human handler
+      description: FR-024, FR-025. Returns conversations with `awaiting_human=true`.
+      responses:
+        "200":
+          description: Escalation queue
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  escalations:
+                    type: array
+                    items: { $ref: "#/components/schemas/EscalationSummary" }
+
+  /api/dispatcher/escalations/{conversation_id}:
+    get:
+      summary: Get a single escalated chat with full transcript and draft state
+      parameters:
+        - { name: conversation_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EscalationDetail" }
+
+  /api/dispatcher/escalations/{conversation_id}/take-over:
+    post:
+      summary: Take over an escalated chat
+      description: |
+        FR-026. Subsequent customer messages route to this dispatcher
+        until close-handoff. Idempotent — second call returns 200.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dispatcher_name]
+              properties:
+                dispatcher_name: { $ref: "#/components/schemas/DispatcherName" }
+      responses:
+        "200":
+          description: Took over
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EscalationDetail" }
+        "400":
+          description: Missing or invalid dispatcher_name
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/dispatcher/escalations/{conversation_id}/messages:
+    post:
+      summary: Send a message from the dispatcher to the customer's Telegram chat
+      description: |
+        FR-026. Posts the message to Telegram, attributed as coming from a
+        human operator. Persists a Turn(sender="dispatcher").
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dispatcher_name, text]
+              properties:
+                dispatcher_name: { $ref: "#/components/schemas/DispatcherName" }
+                text: { type: string, minLength: 1, maxLength: 4000 }
+      responses:
+        "202":
+          description: Queued for delivery to Telegram
+        "400":
+          description: Missing or invalid dispatcher_name
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /api/dispatcher/escalations/{conversation_id}/close-handoff:
+    post:
+      summary: Close the human-handoff and return the conversation to the bot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dispatcher_name]
+              properties:
+                dispatcher_name: { $ref: "#/components/schemas/DispatcherName" }
+      responses:
+        "200":
+          description: Closed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EscalationDetail" }
+        "400":
+          description: Missing or invalid dispatcher_name
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /healthz:
+    get:
+      summary: Liveness probe
+      security: []
+      responses:
+        "200": { description: OK }
+
+  /readyz:
+    get:
+      summary: Readiness probe — DB, Redis, classifier loaded
+      security: []
+      responses:
+        "200": { description: OK }
+        "503": { description: Not ready }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+
+    DispatcherName:
+      type: string
+      minLength: 1
+      maxLength: 80
+      description: |
+        Self-reported operator name recorded on every state-changing
+        dispatcher action for audit attribution. Trimmed server-side;
+        must be non-empty after trim. See research.md §R12. Missing or
+        empty values return HTTP 400 with code `DISPATCHER_NAME_REQUIRED`.
+
+    OrderState:
+      type: string
+      enum: [awaiting_dispatcher_review, entered_in_pos, cancelled]
+
+    Language:
+      type: string
+      enum: [en, ar_lb, arabizi]
+
+    Fulfillment:
+      type: string
+      enum: [delivery, pickup]
+
+    Address:
+      type: object
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [text, location] }
+        text_value: { type: string, nullable: true }
+        lat: { type: number, nullable: true }
+        lon: { type: number, nullable: true }
+        area_label: { type: string, nullable: true }
+        in_zone: { type: boolean }
+
+    OrderItemCustomization:
+      type: object
+      required: [kind, text]
+      properties:
+        kind: { type: string, enum: [add, remove, cook_pref, extra_side, other] }
+        text: { type: string }
+
+    OrderItem:
+      type: object
+      required: [menu_item_id, name, quantity, price_usd, customizations]
+      properties:
+        menu_item_id: { type: string }
+        name: { type: string, description: Display name in the conversation language. }
+        quantity: { type: integer, minimum: 1 }
+        price_usd: { type: number, minimum: 0 }
+        customizations:
+          type: array
+          items: { $ref: "#/components/schemas/OrderItemCustomization" }
+
+    OrderSummary:
+      type: object
+      required: [id, customer_name, customer_phone, fulfillment, language, estimated_total_usd, flags, state, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        customer_name: { type: string }
+        customer_phone: { type: string, description: E.164 }
+        fulfillment: { $ref: "#/components/schemas/Fulfillment" }
+        language: { $ref: "#/components/schemas/Language" }
+        estimated_total_usd: { type: number }
+        flags:
+          type: array
+          items: { type: string, enum: [out_of_zone_warning] }
+        state: { $ref: "#/components/schemas/OrderState" }
+        created_at: { type: string, format: date-time }
+
+    OrderDetail:
+      allOf:
+        - $ref: "#/components/schemas/OrderSummary"
+        - type: object
+          required: [items, transcript_url]
+          properties:
+            address: { $ref: "#/components/schemas/Address", nullable: true }
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/OrderItem" }
+            transcript_url: { type: string, format: uri }
+            entered_in_pos_at: { type: string, format: date-time, nullable: true }
+            dispatcher_actions:
+              type: array
+              items: { $ref: "#/components/schemas/DispatcherActionRecord" }
+
+    OrderEditRequest:
+      type: object
+      required: [dispatcher_name]
+      description: |
+        `dispatcher_name` is required (audit attribution). All other
+        fields are optional; provided fields replace the existing value.
+      properties:
+        dispatcher_name: { $ref: "#/components/schemas/DispatcherName" }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/OrderItem" }
+        fulfillment: { $ref: "#/components/schemas/Fulfillment" }
+        address: { $ref: "#/components/schemas/Address", nullable: true }
+        note: { type: string, description: Dispatcher note for the audit log. }
+
+    DispatcherActionRecord:
+      type: object
+      required: [action, dispatcher_id, dispatcher_name, created_at]
+      properties:
+        action:
+          type: string
+          enum: [review, edit, mark_entered_in_pos, cancel, take_over_chat, reply_in_chat, close_handoff]
+        dispatcher_id: { type: string, description: Hash of the bearer token used. }
+        dispatcher_name: { $ref: "#/components/schemas/DispatcherName" }
+        details: { type: object, additionalProperties: true }
+        created_at: { type: string, format: date-time }
+
+    EscalationSummary:
+      type: object
+      required: [conversation_id, customer_name, customer_phone, language, last_activity_at]
+      properties:
+        conversation_id: { type: string, format: uuid }
+        customer_name: { type: string }
+        customer_phone: { type: string }
+        language: { $ref: "#/components/schemas/Language" }
+        last_activity_at: { type: string, format: date-time }
+        active_draft_summary:
+          type: string
+          nullable: true
+          description: |
+            Human-readable one-liner derived from the conversation's
+            DraftSummary, generated by the `summarize_for_dispatcher`
+            tool. Null when the conversation has no in-flight draft.
+
+    DraftSummary:
+      type: object
+      description: |
+        Snapshot of an in-flight order draft retrieved from Redis.
+        Not a confirmed order — has no state, no confirmed_at, no
+        dispatcher_actions. Present in EscalationDetail only.
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/OrderItem" }
+        fulfillment: { $ref: "#/components/schemas/Fulfillment", nullable: true }
+        address: { $ref: "#/components/schemas/Address", nullable: true }
+        customization_notes: { type: string, nullable: true }
+        item_count: { type: integer }
+        estimated_total_usd: { type: number, nullable: true }
+
+    EscalationDetail:
+      allOf:
+        - $ref: "#/components/schemas/EscalationSummary"
+        - type: object
+          properties:
+            assigned_dispatcher_id: { type: string, nullable: true }
+            transcript:
+              type: array
+              items: { $ref: "#/components/schemas/Turn" }
+            active_draft:
+              $ref: "#/components/schemas/DraftSummary"
+              nullable: true
+
+    Turn:
+      type: object
+      required: [sender, text, language, created_at]
+      properties:
+        sender: { type: string, enum: [customer, bot, dispatcher] }
+        text: { type: string }
+        language: { $ref: "#/components/schemas/Language" }
+        intent:
+          type: string
+          enum: [order, reservation, query, status, image]
+          nullable: true
+        created_at: { type: string, format: date-time }

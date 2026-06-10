@@ -1,0 +1,107 @@
+{
+  "restaurant": {
+    "name": "Lakkis Farm",
+    "tagline": "Authentic Lebanese cuisine with farm-fresh ingredients",
+    "contact": {
+      "phone": "1661",
+      "telegram": ""
+    },
+    "location": {
+      "area": "Hamra, Beirut",
+      "address": "Beirut, Kantari, near Borj el Mort, next to the old Bank of Beirut",
+      "google_maps": "https://www.google.com/maps/dir//Lakkis+Farm,+VFWW%2BH6H,+Beirut/@33.863413,35.5410507,11z/data=!4m8!4m7!1m0!1m5!1m1!1s0x151f17dea828595b:0x1022c4f70753468!2m2!1d35.4958894!2d33.8964042?entry=ttu&g_ep=EgoyMDI2MDYwMy4xIKXMDSoASAFQAw%3D%3D"
+    },
+    "hours": {
+      "dine_in": "Open 24/7",
+      "delivery": "8:00 AM to 2:00 AM daily",
+      "note": "Delivery hours may vary on public holidays"
+    },
+    "delivery": {
+      "areas": [
+        "Hamra",
+        "Ras Beirut",
+        "Verdun",
+        "Achrafieh",
+        "Gemmayzeh",
+        "Mar Mikhael",
+        "Badaro",
+        "Tallet el Khayat",
+        "Raouche",
+        "Manara",
+        "Ain el Mreisseh",
+        "Bliss",
+        "Clemenceau",
+        "Sanayeh",
+        "Barbour",
+        "Basta",
+        "Tariq el Jdideh",
+        "Chiyah",
+        "Geitawi",
+        "Bourj Hammoud"
+      ],
+      "delivery_fee": "$3",
+      "estimated_time": "30 to 60 minutes depending on location and time"
+    },
+    "reservation_policy": {
+      "accepts_reservations": true,
+      "sections": ["indoor", "outdoor", "non-smoking"],
+      "max_party_size": "20 people",
+      "advance_booking": "Reservations can be made up to 30 days in advance",
+      "cancellation_policy": "Please notify us at least 2 hours in advance if you need to cancel or modify your reservation.",
+      "special_occasions": "We accommodate birthdays and special events. Please mention your occasion when booking.",
+      "note": "Walk-ins are always welcome subject to availability"
+    },
+    "payment": {
+      "methods": ["cash", "credit card"],
+      "credit_card_note": "Credit cards are accepted for in-store purchases only. Delivery orders are cash on delivery.",
+      "currency": "USD and LBP accepted"
+    },
+    "about": {
+      "story": "Welcome to the world of Lakkis Farm - where dreams take root amidst rolling hills and endless fields! Our journey began in 2000 with a humble plot of land and blossomed into a remarkable adventure. Guided by our founder, Mouhib Lakkis, we transformed a modest farm into a thriving family business with a singular dream: to produce the finest dairy products imaginable. In 2017, the Lakkis Slaughterhouse joined our ranks, renowned for its premium quality and freshness. We are not just about dairy and meat - we are about cultivating goodness from the ground up. We grow our own organic vegetables, ensuring that every ingredient in our products is of the highest quality. Lakkis became synonymous with authenticity, with our mouthwatering Sfiha captivating hearts and palates alike. Our branches include Baalbek (renovated 2021), Zahle (2013), Chtoura (2018), Beirut (2022), Jal Dib, and Batroun (2024). At Lakkis Farm, we do not just offer products - we offer a journey filled with passion and a deep-rooted love for the land and its bounty.",
+      "specialty": "We specialize in authentic Lebanese cuisine using farm-fresh dairy products, traditional recipes, and quality meats. Our sfiha, raw meat plates, and farm products are among our signatures.",
+      "farm_products": "We produce our own dairy: labneh, laban, cheese, eggs, and more - all from our own farm."
+    },
+    "faqs": [
+      {
+        "question": "Do you use fresh farm ingredients?",
+        "answer": "Yes. Our dairy products - labneh, laban, cheese, and eggs - come directly from our own farm."
+      },
+      {
+        "question": "Do you deliver outside Beirut?",
+        "answer": "Currently we deliver within Beirut and its surroundings. Contact us on 1661 for special arrangements."
+      },
+      {
+        "question": "Can I order retail products for home?",
+        "answer": "Yes. We sell our farm products including cheeses, labneh, laban, jars, and frozen items for home use."
+      },
+      {
+        "question": "Do you cater for events?",
+        "answer": "Yes. We offer catering for weddings, birthdays, corporate events, and other special occasions. Please call us at 1661 to discuss menu options and pricing."
+      },
+      {
+        "question": "Is parking available?",
+        "answer": "Street parking is available near the restaurant. For exact details, please call us at 1661."
+      },
+      {
+        "question": "Do you accept credit cards?",
+        "answer": "Yes. We accept major credit cards for in-store purchases only. Delivery orders are cash on delivery."
+      },
+      {
+        "question": "Are your meats halal?",
+        "answer": "Yes. All our meats are sourced from our own slaughterhouse and are halal-certified."
+      },
+      {
+        "question": "Do you have vegetarian options?",
+        "answer": "Yes. We have a wide selection of cold and hot mezza, salads, breakfast items, and tannour manakish that are vegetarian-friendly."
+      },
+      {
+        "question": "What is your phone number?",
+        "answer": "You can reach us at 1661."
+      },
+      {
+        "question": "How long does delivery take?",
+        "answer": "Delivery typically takes 30 to 60 minutes depending on your location and time of day."
+      }
+    ]
+  }
+}
