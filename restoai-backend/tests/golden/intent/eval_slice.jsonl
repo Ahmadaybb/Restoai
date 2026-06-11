@@ -1,0 +1,22 @@
+{"text": "I want to order 2 hummus and 1 fattoush", "intent": "order"}
+{"text": "Can I get a large mixed grill plate please", "intent": "order"}
+{"text": "bidi 3 shawarma w 2 falafel", "intent": "order"}
+{"text": "order please: 1 kibbeh, no onions", "intent": "order"}
+{"text": "ممكن اطلب 2 حمص و سلطة", "intent": "order"}
+{"text": "I want to book a table for 4 at 7pm", "intent": "reservation"}
+{"text": "can I make a reservation for Saturday night", "intent": "reservation"}
+{"text": "what's in the fattoush salad?", "intent": "query"}
+{"text": "is the hummus vegan?", "intent": "query"}
+{"text": "what are the ingredients in the mixed grill?", "intent": "query"}
+{"text": "do you have anything spicy?", "intent": "query"}
+{"text": "what's the price of the shawarma plate?", "intent": "query"}
+{"text": "where is my order?", "intent": "status"}
+{"text": "how long will my delivery take?", "intent": "status"}
+{"text": "has my order been confirmed?", "intent": "status"}
+{"text": "send me a picture of the menu", "intent": "image"}
+{"text": "can you show me a photo of the mixed grill?", "intent": "image"}
+{"text": "add 1 tabbouleh to my order", "intent": "order"}
+{"text": "I'd like the combo meal please", "intent": "order"}
+{"text": "give me 1 portion of kibbeh nayye", "intent": "order"}
+{"text": "is the restaurant open now?", "intent": "query"}
+{"text": "what time do you close?", "intent": "query"}
