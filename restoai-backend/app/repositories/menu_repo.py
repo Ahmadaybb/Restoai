@@ -17,8 +17,9 @@ from rapidfuzz import fuzz, process
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.models import MenuChunk as MenuChunkORM
 from app.db.models import MenuItem as MenuItemORM
-from app.domain.menu import MenuItem
+from app.domain.menu import MenuChunk, MenuItem
 
 logger = logging.getLogger(__name__)
 
@@ -102,6 +103,40 @@ def find_by_phrase(phrase: str) -> list[MenuItem]:
         for _, score, item_id in results
         if score >= _FUZZY_THRESHOLD
     ]
+
+
+async def upsert_chunks(
+    session: AsyncSession, chunks: list[MenuChunk]
+) -> None:
+    """Upsert MenuChunk rows (keyed by menu_item_id + language). Idempotent.
+
+    Called by app/cli/embed_menu.py after embedding. The unique constraint
+    uq_menu_chunk_item_lang enforces the idempotency key.
+    """
+    rows = [
+        {
+            "id": chunk.id,
+            "menu_item_id": chunk.menu_item_id,
+            "text": chunk.text,
+            "language": chunk.language,
+            "embedding": chunk.embedding,
+        }
+        for chunk in chunks
+        if chunk.embedding is not None
+    ]
+    if not rows:
+        return
+    stmt = pg_insert(MenuChunkORM).values(rows)
+    stmt = stmt.on_conflict_do_update(
+        constraint="uq_menu_chunk_item_lang",
+        set_={
+            "text": stmt.excluded.text,
+            "embedding": stmt.excluded.embedding,
+        },
+    )
+    await session.execute(stmt)
+    await session.commit()
+    logger.info("menu_chunks_upserted", extra={"count": len(rows)})
 
 
 async def upsert_menu_items(session: AsyncSession) -> None:

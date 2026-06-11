@@ -14,13 +14,14 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.clients import LLMClient, MessengerClient
+from app.domain.clients import EmbeddingClient, LLMClient, MessengerClient
 from app.domain.conversation import Turn
 from app.domain.customer import Customer
 from app.domain.errors import ExternalDependencyError
 from app.domain.language import Intent, Language
 from app.domain.order import OrderItem
 from app.domain.tools import (
+    AnswerMenuQuestionIn,
     MatchDishIn,
     ParseOrderIn,
     RenderReadbackIn,
@@ -32,6 +33,7 @@ from app.repositories import menu_repo, transcript_repo
 from app.services import customer_service, order_draft_service
 from app.services.language_service import detect as lang_detect
 from app.services.language_service import reply_language
+from app.services.tools import answer_menu_question as qa_tool
 from app.services.tools import match_dish as match_dish_tool
 from app.services.tools import parse_order as parse_order_tool
 from app.services.tools import render_readback as readback_tool
@@ -136,6 +138,7 @@ async def handle_text(
     text: str,
     messenger: MessengerClient,
     llm: LLMClient,
+    embedder: EmbeddingClient | None = None,
 ) -> None:
     """FR-001..FR-019, FR-028..FR-033: Main orchestration loop for text input."""
     # 1. Detect language
@@ -166,7 +169,9 @@ async def handle_text(
                 session, customer, text, reply_lang, llm, conv.id
             )
         elif intent_result == Intent.QUERY:
-            reply_text = _QUERY_STUB_AR if reply_lang == Language.AR_LB else _QUERY_STUB_EN
+            reply_text, buttons = await _handle_query_intent(
+                session, text, reply_lang, llm, embedder
+            )
         else:
             reply_text = _DEGRADATION.get(reply_lang, _DEGRADATION[Language.EN])
     except ExternalDependencyError as exc:
@@ -192,6 +197,33 @@ async def handle_text(
     )
     await transcript_repo.append_turn(session, outbound_turn)
     await session.commit()
+
+
+async def _handle_query_intent(
+    session: AsyncSession,
+    text: str,
+    reply_lang: Language,
+    llm: LLMClient,
+    embedder: EmbeddingClient | None,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """Route query intent to answer_menu_question (US2, FR-007, FR-008).
+
+    Falls back to the stub when the embedder is unavailable (e.g., in tests
+    that haven't loaded the embedding model or in US1-only deployments).
+    The active OrderDraft is NOT touched here so ordering and Q&A share one
+    conversation without losing the cart (FR-008).
+    """
+    if embedder is None:
+        stub = _QUERY_STUB_AR if reply_lang == Language.AR_LB else _QUERY_STUB_EN
+        return stub, None
+
+    qa_result = await qa_tool.answer_menu_question(
+        AnswerMenuQuestionIn(question=text, language=reply_lang),
+        session=session,
+        embedder=embedder,
+        llm=llm,
+    )
+    return qa_result.answer, None
 
 
 async def _handle_order_intent(

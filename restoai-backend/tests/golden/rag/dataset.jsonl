@@ -1,0 +1,15 @@
+{"question": "What is in the zaatar tannour?", "language": "en", "expected_top_menu_item_ids": ["tannour_zaatar"]}
+{"question": "What are the ingredients in balila?", "language": "en", "expected_top_menu_item_ids": ["breakfast_balila"]}
+{"question": "How much does the Lebanese Burger cost?", "language": "en", "expected_top_menu_item_ids": ["burger_lebanese_burger"]}
+{"question": "What comes in the grape leaves with oil?", "language": "en", "expected_top_menu_item_ids": ["cold_mezza_grape_leaves_with_oil"]}
+{"question": "Tell me about msabaha", "language": "en", "expected_top_menu_item_ids": ["breakfast_msabaha"]}
+{"question": "What is the cow labneh sandwich made of?", "language": "en", "expected_top_menu_item_ids": ["cold_sandwiches_cow_labneh_sandwich"]}
+{"question": "Is the kafta tannour spicy?", "language": "en", "expected_top_menu_item_ids": ["tannour_kafta_tannour"]}
+{"question": "What is karisheh cheese?", "language": "en", "expected_top_menu_item_ids": ["retail_cheese_nv_karisheh"]}
+{"question": "What is in the iced latte?", "language": "en", "expected_top_menu_item_ids": ["cold_beverage_iced_latte"]}
+{"question": "What is foul made of?", "language": "en", "expected_top_menu_item_ids": ["breakfast_foul"]}
+{"question": "ما هي مكونات الزعتر التنور؟", "language": "ar_lb", "expected_top_menu_item_ids": ["tannour_zaatar"]}
+{"question": "ما هو المسبحة؟", "language": "ar_lb", "expected_top_menu_item_ids": ["breakfast_msabaha"]}
+{"question": "shu fi bil zaatar tannour?", "language": "arabizi", "expected_top_menu_item_ids": ["tannour_zaatar"]}
+{"question": "adesh el lebanese burger?", "language": "arabizi", "expected_top_menu_item_ids": ["burger_lebanese_burger"]}
+{"question": "shu bi7ki 3an el foul?", "language": "arabizi", "expected_top_menu_item_ids": ["breakfast_foul"]}

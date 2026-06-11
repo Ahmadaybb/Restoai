@@ -52,6 +52,7 @@ async def _process_update(
     state = getattr(app, "state", None)
     telegram = getattr(state, "telegram", None)
     llm = getattr(state, "llm", None)
+    embedder = getattr(state, "embedder", None)
 
     # Resolve customer from telegram user
     tg_user_id: int | None = None
@@ -106,7 +107,7 @@ async def _process_update(
         text = msg.get("text", "")
         if text and llm is not None:
             await conversation_service.handle_text(
-                session, customer, chat_id, text, telegram, llm
+                session, customer, chat_id, text, telegram, llm, embedder
             )
 
     elif "callback_query" in data:
