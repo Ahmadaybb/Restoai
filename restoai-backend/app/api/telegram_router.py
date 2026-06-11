@@ -72,6 +72,16 @@ async def _process_update(
 
     customer = await customer_service.get_or_create_anonymous(session, tg_user_id)
 
+    # T086: auto-populate display_name from Telegram first_name (FR-012)
+    tg_first_name = ""
+    if "message" in data:
+        tg_first_name = data["message"].get("from", {}).get("first_name", "")
+    elif "callback_query" in data:
+        tg_first_name = data["callback_query"].get("from", {}).get("first_name", "")
+    if tg_first_name and not customer.display_name:
+        await customer_service.set_display_name(session, customer.id, tg_first_name)
+        customer = customer.model_copy(update={"display_name": tg_first_name})
+
     if "message" in data:
         msg = data["message"]
 
@@ -92,11 +102,11 @@ async def _process_update(
             )
             return
 
-        # Location share (FR-010)
+        # Location share (FR-010, T088: fresh location also saved to Postgres)
         if "location" in msg:
             lat = msg["location"]["latitude"]
             lon = msg["location"]["longitude"]
-            await order_draft_service.attach_location(customer.id, lat, lon)
+            await order_draft_service.attach_location(customer.id, lat, lon, session=session)
             await telegram.send_message(
                 chat_id=chat_id,
                 text="📍 Location saved! Would you like to confirm your order?",
@@ -144,10 +154,28 @@ async def _process_update(
             mode = cq_data.split(":", 1)[1]
             draft = await order_draft_service.set_fulfillment(customer.id, mode)
             if mode == "delivery":
-                await telegram.send_message(
-                    chat_id=chat_id,
-                    text="🛵 Delivery selected. Please share your address.",
-                )
+                # T087: offer saved addresses as one-tap buttons (FR-013)
+                if customer.addresses:
+                    addr_buttons = [
+                        {
+                            "label": f"📍 {(a.text_value or 'Saved location')[:40]}",
+                            "callback_data": f"saved_address:{a.id}",
+                        }
+                        for a in customer.addresses
+                    ]
+                    addr_buttons.append(
+                        {"label": "🆕 New address", "callback_data": "new_address"}
+                    )
+                    await telegram.send_message(
+                        chat_id=chat_id,
+                        text="Choose a delivery address:",
+                        buttons=addr_buttons,
+                    )
+                else:
+                    await telegram.send_message(
+                        chat_id=chat_id,
+                        text="🛵 Delivery selected. Please share your address.",
+                    )
             else:
                 if llm is not None:
                     from app.domain.tools import RenderReadbackIn
@@ -178,6 +206,13 @@ async def _process_update(
                     chat_id=chat_id,
                     text="Address not found. Please enter a new address.",
                 )
+
+        elif cq_data == "new_address":
+            # T087: customer chose to enter a fresh address (FR-015)
+            await telegram.send_message(
+                chat_id=chat_id,
+                text="📍 Please share your delivery address.",
+            )
 
 
 @router.post("/telegram/webhook/{secret_path}")

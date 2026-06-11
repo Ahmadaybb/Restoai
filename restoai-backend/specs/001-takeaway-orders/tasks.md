@@ -162,11 +162,11 @@ description: "Dependency-ordered task list for feature 001-takeaway-orders"
 
 **Independent Test**: Place a first order (saving phone, name, address). End the chat. Reopen the chat. The bot must greet by name and offer the saved address; tapping it must let the customer complete a new order without re-typing personal details.
 
-- [ ] T086 [US4] Extend `CustomerService` (T061) with `find_by_phone_e164` lookup on the customer's Telegram-shared phone, used by `ConversationService.on_start` to greet returning customers by name. FR-012; data-model.md §Customer.
-- [ ] T087 [US4] Implement saved-address inline keyboard rendering: when a returning customer chooses delivery, render one inline button per saved `Address` plus a `🆕 New address` button. Wired into the Telegram router's callback handler under `saved_address:<address_id>`. FR-013; contracts/telegram_webhook.md §Inline keyboards — saved_addresses.
-- [ ] T088 [US4] Implement "use a different address" path in `OrderDraftService.attach_address`: a fresh address saves a new `Address` row alongside the customer's existing addresses. FR-015.
-- [ ] T089 [US4] Implement profile persistence in `OrderService.confirm` (T057): on a new customer's first confirmation, persist `phone_e164`, `display_name`, and (for delivery) the `Address`. FR-014.
-- [ ] T090 [US4] [TEST] Implement `tests/e2e/test_us4_returning_customer.py` — first order saves profile; second chat greets by name and offers the saved address with a one-tap callback; second order completes using the saved address. FR-012, FR-013, FR-014, FR-015.
+- [X] T086 [US4] Extend `CustomerService` (T061) with `find_by_phone_e164` lookup on the customer's Telegram-shared phone, used by `ConversationService.on_start` to greet returning customers by name. FR-012; data-model.md §Customer.
+- [X] T087 [US4] Implement saved-address inline keyboard rendering: when a returning customer chooses delivery, render one inline button per saved `Address` plus a `🆕 New address` button. Wired into the Telegram router's callback handler under `saved_address:<address_id>`. FR-013; contracts/telegram_webhook.md §Inline keyboards — saved_addresses.
+- [X] T088 [US4] Implement "use a different address" path in `OrderDraftService.attach_address`: a fresh address saves a new `Address` row alongside the customer's existing addresses. FR-015.
+- [X] T089 [US4] Implement profile persistence in `OrderService.confirm` (T057): on a new customer's first confirmation, persist `phone_e164`, `display_name`, and (for delivery) the `Address`. FR-014.
+- [X] T090 [US4] [TEST] Implement `tests/e2e/test_us4_returning_customer.py` — first order saves profile; second chat greets by name and offers the saved address with a one-tap callback; second order completes using the saved address. FR-012, FR-013, FR-014, FR-015.
 
 **Checkpoint**: Returning customers get the recognition shortcut. US1–US4 each remain independently testable.
 

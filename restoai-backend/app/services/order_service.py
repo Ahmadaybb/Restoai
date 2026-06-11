@@ -16,6 +16,7 @@ from app.domain.order import ConfirmedOrder, OrderItem
 from app.domain.tools import CheckZoneIn
 from app.infra import draft_store
 from app.repositories import menu_repo, order_repo, transcript_repo
+from app.services import customer_service
 from app.services.order_draft_service import validate_ready_to_confirm
 from app.services.tools.check_zone import check_zone
 
@@ -68,6 +69,9 @@ async def confirm(
     )
 
     await order_repo.create_confirmed(session, order)
+
+    # T089: persist phone/name/address on first confirmation (FR-014)
+    await customer_service.persist_on_confirmation(session, customer, draft.address)
 
     # Update conversation with order reference
     await transcript_repo.update_conversation(

@@ -6,6 +6,8 @@ Confirms items exist in the menu cache before adding (FR-005).
 import logging
 from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.domain.customer import Address
 from app.domain.errors import OrderValidationCode, OrderValidationError
 from app.domain.language import Language
@@ -105,8 +107,18 @@ async def set_fulfillment(
 
 
 async def attach_address(
-    customer_id: UUID, address: Address
+    customer_id: UUID,
+    address: Address,
+    *,
+    session: AsyncSession | None = None,
 ) -> OrderDraft:
+    """Attach address to draft. If session is provided, also persists to Postgres (T088)."""
+    if session is not None:
+        from app.repositories import customer_repo
+        if address.customer_id is None:
+            address = address.model_copy(update={"customer_id": customer_id})
+        await customer_repo.save_address(session, address)
+        await session.flush()
     draft = await get_draft(customer_id)
     if draft is None:
         draft = OrderDraft(customer_id=customer_id)
@@ -116,7 +128,11 @@ async def attach_address(
 
 
 async def attach_location(
-    customer_id: UUID, lat: float, lon: float
+    customer_id: UUID,
+    lat: float,
+    lon: float,
+    *,
+    session: AsyncSession | None = None,
 ) -> OrderDraft:
     address = Address(
         customer_id=customer_id,
@@ -125,7 +141,7 @@ async def attach_location(
         lon=lon,
         in_zone=True,
     )
-    return await attach_address(customer_id, address)
+    return await attach_address(customer_id, address, session=session)
 
 
 async def select_saved_address(
