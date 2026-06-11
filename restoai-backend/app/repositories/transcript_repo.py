@@ -97,6 +97,31 @@ async def append_turn(session: AsyncSession, turn: Turn) -> Turn:
     return turn
 
 
+async def list_escalated(
+    session: AsyncSession,
+) -> list[Conversation]:
+    """Return all conversations with awaiting_human=True, newest first."""
+    result = await session.execute(
+        select(ConvORM)
+        .where(ConvORM.awaiting_human.is_(True))
+        .order_by(ConvORM.last_activity_at.desc())
+    )
+    return [_conv_to_domain(row) for row in result.scalars().all()]
+
+
+async def get_last_turn(
+    session: AsyncSession, conversation_id: uuid.UUID
+) -> Turn | None:
+    result = await session.execute(
+        select(TurnORM)
+        .where(TurnORM.conversation_id == conversation_id)
+        .order_by(TurnORM.created_at.desc())
+        .limit(1)
+    )
+    row = result.scalar_one_or_none()
+    return _turn_to_domain(row) if row else None
+
+
 async def get_turns(
     session: AsyncSession, conversation_id: uuid.UUID
 ) -> list[Turn]:

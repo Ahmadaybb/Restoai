@@ -83,10 +83,12 @@ app = FastAPI(title="RestoAI Backend", lifespan=lifespan)
 app.add_middleware(RequestIdMiddleware)
 
 # ── Routers ───────────────────────────────────────────────────────────────────
+from app.api.dispatcher.escalations import router as dispatcher_escalations_router  # noqa: E402
 from app.api.dispatcher.orders import router as dispatcher_orders_router  # noqa: E402
 from app.api.health import router as health_router  # noqa: E402
 from app.api.telegram_router import router as telegram_router  # noqa: E402
 
 app.include_router(health_router)
 app.include_router(dispatcher_orders_router)
+app.include_router(dispatcher_escalations_router)
 app.include_router(telegram_router)

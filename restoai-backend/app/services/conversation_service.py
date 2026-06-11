@@ -159,6 +159,12 @@ async def handle_text(
     await transcript_repo.append_turn(session, inbound_turn)
     await customer_service.update_last_seen(session, customer.id)
 
+    # T095: while awaiting_human, record turns but don't reply — the
+    # dispatcher is the active agent for this conversation (FR-026).
+    if conv.awaiting_human:
+        await session.commit()
+        return
+
     # 3. Route intent
     reply_text: str
     buttons: list[dict[str, str]] | None = None

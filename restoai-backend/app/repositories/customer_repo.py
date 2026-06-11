@@ -37,6 +37,18 @@ def _orm_to_domain(row: CustomerORM) -> Customer:
     )
 
 
+async def find_by_id(
+    session: AsyncSession, customer_id: uuid.UUID
+) -> Customer | None:
+    result = await session.execute(
+        select(CustomerORM)
+        .where(CustomerORM.id == customer_id)
+        .options(selectinload(CustomerORM.addresses))
+    )
+    row = result.scalar_one_or_none()
+    return _orm_to_domain(row) if row else None
+
+
 async def find_by_phone_e164(
     session: AsyncSession, phone: str
 ) -> Customer | None:
