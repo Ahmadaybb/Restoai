@@ -145,12 +145,12 @@ description: "Dependency-ordered task list for feature 001-takeaway-orders"
 
 **Independent Test**: From a working US1 flow, place an order with at least three different customizations across different items. Each customization must appear under the correct item in both the customer's read-back and the dispatcher's view.
 
-- [ ] T080 [US3] Extend `parse_order` (T049) in `app/services/tools/parse_order.py` to recognize and attach modifiers/removals/cook_pref/extra_side/other to the parent item per data-model.md §Customization. FR-004.
-- [ ] T081 [US3] Extend `render_readback` (T056) so each customization appears under its parent item in the read-back text. FR-016 wording.
-- [ ] T082 [US3] Extend `OrderRepository.create_confirmed` (T045) so `OrderItem.customizations` persist on the confirmed order and surface in `OrderDetail.items[].customizations` of the dispatcher API. FR-020; contracts/dispatcher_api.openapi.yaml §OrderItem.
-- [ ] T083 [US3] [TEST] Implement `tests/services/test_readback_customizations.py` covering three customization kinds attached to two different items, asserting placement under parents in the read-back. FR-016.
-- [ ] T084 [US3] [TEST] Implement `tests/api/test_dispatcher_customizations.py` calling `GET /api/dispatcher/orders/{id}` and asserting every customization is present under its parent item. FR-020.
-- [ ] T085 [US3] [TEST] Implement `tests/services/test_unmapped_customization.py` — send a deliberately unmappable customization, assert the bot asks for clarification and does NOT silently drop the customization. FR-006.
+- [X] T080 [US3] Extend `parse_order` (T049) in `app/services/tools/parse_order.py` to recognize and attach modifiers/removals/cook_pref/extra_side/other to the parent item per data-model.md §Customization. FR-004.
+- [X] T081 [US3] Extend `render_readback` (T056) so each customization appears under its parent item in the read-back text. FR-016 wording.
+- [X] T082 [US3] Extend `OrderRepository.create_confirmed` (T045) so `OrderItem.customizations` persist on the confirmed order and surface in `OrderDetail.items[].customizations` of the dispatcher API. FR-020; contracts/dispatcher_api.openapi.yaml §OrderItem.
+- [X] T083 [US3] [TEST] Implement `tests/services/test_readback_customizations.py` covering three customization kinds attached to two different items, asserting placement under parents in the read-back. FR-016.
+- [X] T084 [US3] [TEST] Implement `tests/api/test_dispatcher_customizations.py` calling `GET /api/dispatcher/orders/{id}` and asserting every customization is present under its parent item. FR-020.
+- [X] T085 [US3] [TEST] Implement `tests/services/test_unmapped_customization.py` — send a deliberately unmappable customization, assert the bot asks for clarification and does NOT silently drop the customization. FR-006.
 
 **Checkpoint**: US1 + US2 + US3 work independently. Customers can order with full customization fidelity.
 

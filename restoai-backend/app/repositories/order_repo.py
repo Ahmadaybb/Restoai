@@ -16,7 +16,7 @@ from app.db.models import ConfirmedOrder as OrderORM
 from app.db.models import Customer as CustomerORM
 from app.db.models import DispatcherAction as ActionORM
 from app.domain.customer import Address, Customer
-from app.domain.order import ConfirmedOrder, OrderItem, OrderState
+from app.domain.order import ConfirmedOrder, Customization, OrderItem, OrderState
 
 
 def _items_to_json(items: list[OrderItem]) -> list[dict[str, Any]]:
@@ -53,7 +53,7 @@ def _orm_to_domain(row: OrderORM) -> ConfirmedOrder:
             menu_item_id=it["menu_item_id"],
             quantity=it["quantity"],
             customizations=[
-                type("C", (), {"kind": c["kind"], "text": c["text"]})()
+                Customization(kind=c["kind"], text=c["text"])
                 for c in it.get("customizations", [])
             ],
         )
