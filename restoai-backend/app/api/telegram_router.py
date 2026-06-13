@@ -1,11 +1,15 @@
 """Telegram inbound router — webhook + polling integration.
 
 Handles: /start, text messages, contact shares, location shares,
-confirm/edit/fulfillment/saved_address callback queries.
+confirm/edit/fulfillment/saved_address callback queries, and
+reservation callbacks (res_seating:*, res_date_confirm:*, res_date_retry).
 
 contracts/telegram_webhook.md; FR-001, FR-009, FR-010, FR-013,
 FR-014, FR-016, FR-018.
 """
+from __future__ import annotations
+
+import datetime as _dt
 import logging
 from typing import Any
 from uuid import UUID
@@ -14,12 +18,17 @@ from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.errors import ExternalDependencyError, OrderValidationCode, OrderValidationError
+from app.domain.language import Language
+from app.domain.reservation import SeatingPreference
+from app.infra import draft_store
 from app.infra.redaction import redact
 from app.services import (
     conversation_service,
     customer_service,
     order_draft_service,
     order_service,
+    reservation_draft_service,
+    reservation_prompts,
 )
 
 logger = logging.getLogger(__name__)
@@ -261,11 +270,104 @@ async def _process_update(
                     text="Address not found. Please enter a new address.",
                 )
 
+        elif cq_data.startswith("res_seating:"):
+            await _handle_res_seating_callback(
+                cq_data, customer, chat_id, telegram, session, llm
+            )
+
+        elif cq_data.startswith("res_date_confirm:"):
+            # res_date_confirm:{customer_id}:{iso_date}
+            parts = cq_data.split(":", 2)
+            if len(parts) == 3 and llm is not None:
+                iso_date = parts[2]
+                date = _dt.date.fromisoformat(iso_date)
+                res_draft = await reservation_draft_service.get_draft(customer.id)
+                lang = res_draft.language if res_draft else Language.EN
+                await reservation_draft_service.collect_field(customer.id, "date", date)
+                await conversation_service.continue_reservation_flow(
+                    session, customer, chat_id, telegram, llm, lang
+                )
+
+        elif cq_data == "res_date_retry":
+            res_draft = await reservation_draft_service.get_draft(customer.id)
+            lang = res_draft.language if res_draft else Language.EN
+            await draft_store.put_chat_state(customer.id, {"waiting_for": "reservation_date"})
+            await telegram.send_message(
+                chat_id=chat_id,
+                text=reservation_prompts.DATE.get(lang, reservation_prompts.DATE[Language.EN]),
+            )
+
         elif cq_data == "new_address":
             # T087: customer chose to enter a fresh address (FR-015)
             await telegram.send_message(
                 chat_id=chat_id,
                 text="📍 Please share your delivery address.",
+            )
+
+
+async def _handle_res_seating_callback(
+    cq_data: str,
+    customer: Any,
+    chat_id: int,
+    telegram: Any,
+    session: AsyncSession,
+    llm: Any,
+) -> None:
+    """Route res_seating:* callback to the appropriate seating sub-step. T024, FR-006."""
+    seating_val = cq_data.split(":", 1)[1]
+    res_draft = await reservation_draft_service.get_draft(customer.id)
+    lang: Language = res_draft.language if res_draft else Language.EN
+    ar = lang in (Language.AR_LB, Language.ARABIZI)
+
+    if seating_val == "indoor":
+        await draft_store.put_chat_state(
+            customer.id, {"waiting_for": "reservation_seating_smoking"}
+        )
+        buttons = (
+            reservation_prompts.SMOKING_BUTTONS_AR if ar else reservation_prompts.SMOKING_BUTTONS_EN
+        )
+        await telegram.send_message(
+            chat_id=chat_id,
+            text=reservation_prompts.SMOKING.get(lang, reservation_prompts.SMOKING[Language.EN]),
+            buttons=buttons,
+        )
+
+    elif seating_val == "outdoor":
+        await draft_store.put_chat_state(
+            customer.id, {"waiting_for": "reservation_seating_terrace"}
+        )
+        buttons = (
+            reservation_prompts.TERRACE_BUTTONS_AR if ar else reservation_prompts.TERRACE_BUTTONS_EN
+        )
+        await telegram.send_message(
+            chat_id=chat_id,
+            text=reservation_prompts.TERRACE.get(lang, reservation_prompts.TERRACE[Language.EN]),
+            buttons=buttons,
+        )
+
+    elif seating_val in ("indoor_smoking", "indoor_non_smoking", "outdoor_non_terrace"):
+        sp_map = {
+            "indoor_smoking": SeatingPreference.INDOOR_SMOKING,
+            "indoor_non_smoking": SeatingPreference.INDOOR_NON_SMOKING,
+            "outdoor_non_terrace": SeatingPreference.OUTDOOR_NON_TERRACE,
+        }
+        await reservation_draft_service.collect_field(
+            customer.id, "seating_preference", sp_map[seating_val]
+        )
+        if llm is not None:
+            await conversation_service.continue_reservation_flow(
+                session, customer, chat_id, telegram, llm, lang
+            )
+
+    elif seating_val == "outdoor_terrace":
+        # Save outdoor_terrace; _next_step_or_confirm raises TERRACE_TOO_LARGE if
+        # party_size > 5 → sends terrace block message (FR-006, T023).
+        await reservation_draft_service.collect_field(
+            customer.id, "seating_preference", SeatingPreference.OUTDOOR_TERRACE
+        )
+        if llm is not None:
+            await conversation_service.continue_reservation_flow(
+                session, customer, chat_id, telegram, llm, lang
             )
 
 

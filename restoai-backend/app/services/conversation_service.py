@@ -7,7 +7,11 @@ T051: parse_order → match_dish two-pass pipeline (FR-003, FR-005, FR-006).
 T060: handle_text routing for US1 (order intent; query stub).
 T062: on_start welcome flow (FR-001, FR-002).
 T069: graceful degradation on ExternalDependencyError (FR-034).
+T021/T022: Intent.RESERVATION branch and _handle_reservation_intent (FR-001, FR-002).
 """
+from __future__ import annotations
+
+import datetime as _dt
 import logging
 from uuid import UUID
 
@@ -19,23 +23,34 @@ from app.domain.customer import Address, Customer
 from app.domain.errors import ExternalDependencyError
 from app.domain.language import Intent, Language
 from app.domain.order import OrderItem
+from app.domain.reservation import ReservationValidationCode, ReservationValidationError
 from app.domain.tools import (
     AnswerMenuQuestionIn,
+    ExtractReservationFieldsIn,
     MatchDishIn,
     ParseOrderIn,
     RenderReadbackIn,
+    RenderReservationConfirmationIn,
 )
 from app.infra import draft_store
 from app.infra.intent_classifier import classify
 from app.infra.redaction import redact
 from app.repositories import transcript_repo
-from app.services import customer_service, order_draft_service
+from app.services import (
+    customer_service,
+    order_draft_service,
+    reservation_draft_service,
+    reservation_prompts,
+    reservation_service,
+)
 from app.services.language_service import detect as lang_detect
 from app.services.language_service import reply_language
 from app.services.tools import answer_menu_question as qa_tool
+from app.services.tools import extract_reservation_fields as extract_res_tool
 from app.services.tools import match_dish as match_dish_tool
 from app.services.tools import parse_order as parse_order_tool
 from app.services.tools import render_readback as readback_tool
+from app.services.tools import render_reservation_confirmation as render_res_conf_tool
 
 logger = logging.getLogger(__name__)
 
@@ -154,6 +169,10 @@ async def handle_text(
         elif intent_result == Intent.QUERY:
             reply_text, buttons = await _handle_query_intent(
                 session, text, reply_lang, llm, embedder
+            )
+        elif intent_result == Intent.RESERVATION:
+            reply_text, buttons = await _handle_reservation_intent(
+                session, customer, text, reply_lang, llm, conv.id
             )
         else:
             reply_text = _DEGRADATION.get(reply_lang, _DEGRADATION[Language.EN])
@@ -293,3 +312,291 @@ async def _handle_order_intent(
     )
     buttons = [b.model_dump() for b in readback.buttons]
     return readback.text, buttons
+
+
+# ── Reservation collection helpers ───────────────────────────────────────────
+
+
+def _res_prompt(d: dict[Language, str], lang: Language) -> str:
+    return d.get(lang, d[Language.EN])
+
+
+def _is_arabic(lang: Language) -> bool:
+    return lang in (Language.AR_LB, Language.ARABIZI)
+
+
+def _date_confirm_prompt(
+    date: _dt.date,
+    customer_id: UUID,
+    lang: Language,
+) -> tuple[str, list[dict[str, str]]]:
+    """Return date read-back text + confirm/retry buttons. FR-009, T026."""
+    date_str = date.strftime("%d %B %Y")
+    iso_date = date.isoformat()
+    tmpl = _res_prompt(reservation_prompts.DATE_CONFIRM_TMPL, lang)
+    text = tmpl.format(date_str=date_str)
+    buttons: list[dict[str, str]] = [
+        {
+            "label": "✅ Yes, that's correct",
+            "callback_data": f"res_date_confirm:{customer_id}:{iso_date}",
+        },
+        {"label": "✏️ No, let me re-type", "callback_data": "res_date_retry"},
+    ]
+    return text, buttons
+
+
+def _code_to_waiting_for(code: ReservationValidationCode) -> str:
+    _MAP: dict[ReservationValidationCode, str] = {
+        ReservationValidationCode.MISSING_DATE: "reservation_date",
+        ReservationValidationCode.PAST_DATE: "reservation_date",
+        ReservationValidationCode.MISSING_TIME: "reservation_time",
+        ReservationValidationCode.MISSING_PARTY_SIZE: "reservation_party_size",
+        ReservationValidationCode.PARTY_TOO_LARGE: "",
+        ReservationValidationCode.MISSING_NAME: "reservation_name",
+        ReservationValidationCode.MISSING_PHONE: "reservation_phone",
+        ReservationValidationCode.MISSING_SEATING: "reservation_seating_indoor_outdoor",
+        ReservationValidationCode.TERRACE_TOO_LARGE: "reservation_seating_reask",
+    }
+    return _MAP.get(code, "")
+
+
+def _prompt_for_code(
+    code: ReservationValidationCode,
+    lang: Language,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """Return (text, buttons) appropriate for the given missing-field code."""
+    ar = _is_arabic(lang)
+    rp = reservation_prompts
+
+    if code == ReservationValidationCode.MISSING_DATE:
+        return _res_prompt(rp.DATE, lang), None
+
+    if code == ReservationValidationCode.PAST_DATE:
+        return (
+            _res_prompt(rp.DATE_PAST, lang) + "\n" + _res_prompt(rp.DATE, lang),
+            None,
+        )
+
+    if code == ReservationValidationCode.MISSING_TIME:
+        return _res_prompt(rp.TIME, lang), None
+
+    if code == ReservationValidationCode.MISSING_PARTY_SIZE:
+        return _res_prompt(rp.PARTY_SIZE, lang), None
+
+    if code == ReservationValidationCode.PARTY_TOO_LARGE:
+        return _res_prompt(rp.CALL_CENTER_REDIRECT, lang), None
+
+    if code == ReservationValidationCode.MISSING_NAME:
+        return _res_prompt(rp.NAME, lang), None
+
+    if code == ReservationValidationCode.MISSING_PHONE:
+        return _res_prompt(rp.PHONE, lang), None
+
+    if code == ReservationValidationCode.MISSING_SEATING:
+        buttons = rp.INDOOR_OUTDOOR_BUTTONS_AR if ar else rp.INDOOR_OUTDOOR_BUTTONS_EN
+        return _res_prompt(rp.INDOOR_OUTDOOR, lang), buttons
+
+    if code == ReservationValidationCode.TERRACE_TOO_LARGE:
+        buttons = rp.TERRACE_REASK_BUTTONS_AR if ar else rp.TERRACE_REASK_BUTTONS_EN
+        return _res_prompt(rp.TERRACE_BLOCK, lang), buttons
+
+    return _DEGRADATION.get(lang, _DEGRADATION[Language.EN]), None
+
+
+def _resend_seating_prompt(
+    waiting_for: str,
+    lang: Language,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """Re-send seating buttons when user types text during a button step."""
+    ar = _is_arabic(lang)
+    rp = reservation_prompts
+
+    if waiting_for == "reservation_seating_smoking":
+        return (
+            _res_prompt(rp.SMOKING, lang),
+            rp.SMOKING_BUTTONS_AR if ar else rp.SMOKING_BUTTONS_EN,
+        )
+    if waiting_for == "reservation_seating_terrace":
+        return (
+            _res_prompt(rp.TERRACE, lang),
+            rp.TERRACE_BUTTONS_AR if ar else rp.TERRACE_BUTTONS_EN,
+        )
+    if waiting_for == "reservation_seating_reask":
+        return (
+            _res_prompt(rp.TERRACE_BLOCK, lang),
+            rp.TERRACE_REASK_BUTTONS_AR if ar else rp.TERRACE_REASK_BUTTONS_EN,
+        )
+    # Default: re-send indoor/outdoor
+    return (
+        _res_prompt(rp.INDOOR_OUTDOOR, lang),
+        rp.INDOOR_OUTDOOR_BUTTONS_AR if ar else rp.INDOOR_OUTDOOR_BUTTONS_EN,
+    )
+
+
+async def _next_step_or_confirm(
+    session: AsyncSession,
+    customer: Customer,
+    lang: Language,
+    llm: LLMClient,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """Try to confirm if all fields collected; otherwise prompt for next missing field."""
+    draft = await reservation_draft_service.get_draft(customer.id)
+    if draft is None:
+        return _res_prompt(reservation_prompts.DATE, lang), None
+
+    try:
+        draft.validate_ready_to_confirm()
+    except ReservationValidationError as ve:
+        wf = _code_to_waiting_for(ve.code)
+        await draft_store.put_chat_state(customer.id, {"waiting_for": wf})
+        return _prompt_for_code(ve.code, lang)
+
+    # All fields valid — confirm the reservation
+    confirmed = await reservation_service.confirm(session, customer.id)
+    conf_out = await render_res_conf_tool.render_reservation_confirmation(
+        RenderReservationConfirmationIn(reservation=confirmed, language=lang),
+        llm=llm,
+    )
+    await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+    return conf_out.text, None
+
+
+async def continue_reservation_flow(
+    session: AsyncSession,
+    customer: Customer,
+    chat_id: int,
+    messenger: MessengerClient,
+    llm: LLMClient,
+    lang: Language,
+) -> None:
+    """Called from telegram_router after a reservation callback (seating/date) is handled."""
+    text, buttons = await _next_step_or_confirm(session, customer, lang, llm)
+    await messenger.send_message(chat_id=chat_id, text=text, buttons=buttons)
+
+
+async def _handle_reservation_intent(
+    session: AsyncSession,
+    customer: Customer,
+    text: str,
+    lang: Language,
+    llm: LLMClient,
+    conversation_id: UUID,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """FR-001, FR-002, FR-009: Reservation field-collection state machine.
+
+    Reads waiting_for from chat_state, dispatches to sub-handlers, and either
+    prompts for the next field or confirms the reservation when all fields are set.
+    """
+    chat_state = await draft_store.get_chat_state(customer.id) or {}
+    waiting_for: str = chat_state.get("waiting_for", "")
+
+    # ── Fresh start or re-entry ───────────────────────────────────────────────
+    if not waiting_for or not waiting_for.startswith("reservation_"):
+        draft = await reservation_draft_service.get_draft(customer.id)
+        if draft is None:
+            draft = await reservation_draft_service.start_draft(customer.id, lang)
+
+        # Extract any fields the user supplied upfront
+        extracted = await extract_res_tool.extract_reservation_fields(
+            ExtractReservationFieldsIn(text=text, language=lang), llm
+        )
+
+        if extracted.party_size is not None:
+            draft = await reservation_draft_service.collect_field(
+                customer.id, "party_size", extracted.party_size
+            )
+        if extracted.name is not None:
+            draft = await reservation_draft_service.collect_field(
+                customer.id, "name", extracted.name
+            )
+        if extracted.phone is not None:
+            draft = await reservation_draft_service.collect_field(
+                customer.id, "phone", extracted.phone
+            )
+        if extracted.time is not None:
+            draft = await reservation_draft_service.collect_field(
+                customer.id, "time", extracted.time
+            )
+
+        # Handle date — check for informal date (T026, FR-009)
+        if extracted.date is not None:
+            if extracted.date_is_informal:
+                await draft_store.put_chat_state(
+                    customer.id, {"waiting_for": "reservation_date_confirm"}
+                )
+                return _date_confirm_prompt(extracted.date, customer.id, lang)
+            draft = await reservation_draft_service.collect_field(
+                customer.id, "date", extracted.date
+            )
+
+        # Prefill name/phone from Customer record if still unset (FR-004)
+        await reservation_draft_service.prefill_from_customer(customer.id, customer)
+
+        return await _next_step_or_confirm(session, customer, lang, llm)
+
+    # ── Waiting for date (text input) ─────────────────────────────────────────
+    if waiting_for == "reservation_date":
+        extracted = await extract_res_tool.extract_reservation_fields(
+            ExtractReservationFieldsIn(text=text, language=lang), llm
+        )
+        if extracted.date is not None:
+            if extracted.date_is_informal:
+                await draft_store.put_chat_state(
+                    customer.id, {"waiting_for": "reservation_date_confirm"}
+                )
+                return _date_confirm_prompt(extracted.date, customer.id, lang)
+            await reservation_draft_service.collect_field(customer.id, "date", extracted.date)
+            return await _next_step_or_confirm(session, customer, lang, llm)
+        return _res_prompt(reservation_prompts.DATE, lang), None
+
+    # ── Waiting for time ──────────────────────────────────────────────────────
+    if waiting_for == "reservation_time":
+        extracted = await extract_res_tool.extract_reservation_fields(
+            ExtractReservationFieldsIn(text=text, language=lang), llm
+        )
+        if extracted.time is not None:
+            await reservation_draft_service.collect_field(customer.id, "time", extracted.time)
+            return await _next_step_or_confirm(session, customer, lang, llm)
+        return _res_prompt(reservation_prompts.TIME, lang), None
+
+    # ── Waiting for party size ────────────────────────────────────────────────
+    if waiting_for == "reservation_party_size":
+        extracted = await extract_res_tool.extract_reservation_fields(
+            ExtractReservationFieldsIn(text=text, language=lang), llm
+        )
+        if extracted.party_size is not None:
+            await reservation_draft_service.collect_field(
+                customer.id, "party_size", extracted.party_size
+            )
+            return await _next_step_or_confirm(session, customer, lang, llm)
+        return _res_prompt(reservation_prompts.PARTY_SIZE, lang), None
+
+    # ── Waiting for name (plain text) ─────────────────────────────────────────
+    if waiting_for == "reservation_name":
+        name = text.strip()
+        if name:
+            await reservation_draft_service.collect_field(customer.id, "name", name)
+            return await _next_step_or_confirm(session, customer, lang, llm)
+        return _res_prompt(reservation_prompts.NAME, lang), None
+
+    # ── Waiting for phone (plain text) ────────────────────────────────────────
+    if waiting_for == "reservation_phone":
+        phone = text.strip()
+        if phone:
+            await reservation_draft_service.collect_field(customer.id, "phone", phone)
+            return await _next_step_or_confirm(session, customer, lang, llm)
+        return _res_prompt(reservation_prompts.PHONE, lang), None
+
+    # ── Button-driven seating steps (user typed text instead of clicking) ─────
+    if waiting_for in (
+        "reservation_seating_indoor_outdoor",
+        "reservation_seating_smoking",
+        "reservation_seating_terrace",
+        "reservation_seating_reask",
+    ):
+        return _resend_seating_prompt(waiting_for, lang)
+
+    # ── Unknown state — restart ───────────────────────────────────────────────
+    await reservation_draft_service.start_draft(customer.id, lang)
+    await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+    return _res_prompt(reservation_prompts.DATE, lang), None
