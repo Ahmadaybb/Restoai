@@ -10,8 +10,14 @@ from uuid import UUID
 
 from app.domain.customer import Customer
 from app.domain.language import Language
-from app.domain.reservation import ReservationDraft
+from app.domain.reservation import (
+    ReservationDraft,
+    ReservationValidationCode,
+    ReservationValidationError,
+)
 from app.infra import reservation_draft_store
+
+_CALL_CENTER_MAX_PARTY = 14
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +58,13 @@ async def collect_field(
     """Set one field on the active draft and refresh its TTL.
 
     Raises ValueError if no draft is active — callers must call start_draft first.
+    Raises ReservationValidationError(PARTY_TOO_LARGE) immediately when party_size > 14
+    so the caller can redirect to the call center before writing anything. FR-007.
     """
+    if field_name == "party_size" and isinstance(value, int) and value > _CALL_CENTER_MAX_PARTY:
+        raise ReservationValidationError(
+            ReservationValidationCode.PARTY_TOO_LARGE, str(value)
+        )
     draft = await get_draft(customer_id)
     if draft is None:
         raise ValueError(f"No active reservation draft for customer {customer_id}")

@@ -6,6 +6,7 @@ One constant per collection step; button lists for button-driven steps.
 from __future__ import annotations
 
 from app.domain.language import Language
+from app.infra.restaurant_info import get_call_center_phone as _get_phone
 
 DATE = {
     Language.EN: "📅 What date would you like to reserve? (e.g., 20 June or 2026-06-20)",
@@ -112,10 +113,13 @@ TERRACE_REASK_BUTTONS_AR: list[dict[str, str]] = [
     {"label": "🏠 جوا", "callback_data": "res_seating:indoor"},
 ]
 
-CALL_CENTER_REDIRECT = {
-    Language.EN: (
-        "For groups larger than 14, please call our reservations team at 1661."
-    ),
-    Language.AR_LB: "للمجموعات الأكبر من ١٤ شخصاً، يرجى الاتصال على 1661.",
-    Language.ARABIZI: "La groups akbar min 14, ittasil 3a 1661.",
-}
+def _build_call_center_redirect() -> dict[Language, str]:
+    phone = _get_phone()
+    return {
+        Language.EN: f"For groups larger than 14, please call our reservations team at {phone}.",
+        Language.AR_LB: f"للمجموعات الأكبر من ١٤ شخصاً، يرجى الاتصال على {phone}.",
+        Language.ARABIZI: f"La groups akbar min 14, ittasil 3a {phone}.",
+    }
+
+
+CALL_CENTER_REDIRECT = _build_call_center_redirect()

@@ -116,13 +116,13 @@ to call center 1661 and collects no further reservation fields.
 
 **Independent Test**: Per `quickstart.md §US2 — Party too large: redirect to call center`.
 
-- [ ] T028 [US2] Party-too-large guard in `app/services/reservation_draft_service.py` `collect_field`: add the `party_size > 14` check as the FIRST validation when `field_name == "party_size"`; raise `ReservationValidationError(PARTY_TOO_LARGE)` immediately so the caller can emit the redirect message before writing the draft. FR-007. This is the earliest possible check — no other collection step may precede it.
+- [X] T028 [US2] Party-too-large guard in `app/services/reservation_draft_service.py` `collect_field`: add the `party_size > 14` check as the FIRST validation when `field_name == "party_size"`; raise `ReservationValidationError(PARTY_TOO_LARGE)` immediately so the caller can emit the redirect message before writing the draft. FR-007. This is the earliest possible check — no other collection step may precede it.
 
-- [ ] T029 [US2] Load call center phone from `data/restaurant_info.json` in `app/repositories/zone_repo.py` (or a dedicated `get_call_center_phone() -> str` function in `app/infra/restaurant_info.py`): read `restaurant.contact.phone`; LRU-cache at startup; never hardcode `"1661"` in service or routing code. Per research.md R5, ADR-014.
+- [X] T029 [US2] Load call center phone from `data/restaurant_info.json` in `app/repositories/zone_repo.py` (or a dedicated `get_call_center_phone() -> str` function in `app/infra/restaurant_info.py`): read `restaurant.contact.phone`; LRU-cache at startup; never hardcode `"1661"` in service or routing code. Per research.md R5, ADR-014.
 
-- [ ] T030 [P] [US2] Localized call center redirect messages (EN + AR_LB) in `app/services/conversation_service.py`: when `_handle_reservation_intent` catches `PARTY_TOO_LARGE`, reply with a message that quotes the call center number from T029. FR-007.
+- [X] T030 [P] [US2] Localized call center redirect messages (EN + AR_LB) in `app/services/conversation_service.py`: when `_handle_reservation_intent` catches `PARTY_TOO_LARGE`, reply with a message that quotes the call center number from T029. FR-007.
 
-- [ ] T031 [P] [US2] Unit test (extend `tests/services/test_reservation_draft_service.py`): `collect_field("party_size", 15)` raises `PARTY_TOO_LARGE` before any other field is written or any LLM call is made; `collect_field("party_size", 14)` succeeds. FR-007. Principle II.
+- [X] T031 [P] [US2] Unit test (extend `tests/services/test_reservation_draft_service.py`): `collect_field("party_size", 15)` raises `PARTY_TOO_LARGE` before any other field is written or any LLM call is made; `collect_field("party_size", 14)` succeeds. FR-007. Principle II.
 
 **Checkpoint**: US1 + US2 complete — both P1 stories are green.
 

@@ -502,9 +502,13 @@ async def _handle_reservation_intent(
         )
 
         if extracted.party_size is not None:
-            draft = await reservation_draft_service.collect_field(
-                customer.id, "party_size", extracted.party_size
-            )
+            try:
+                draft = await reservation_draft_service.collect_field(
+                    customer.id, "party_size", extracted.party_size
+                )
+            except ReservationValidationError as _ve:
+                await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+                return _prompt_for_code(_ve.code, lang)
         if extracted.name is not None:
             draft = await reservation_draft_service.collect_field(
                 customer.id, "name", extracted.name
@@ -565,9 +569,13 @@ async def _handle_reservation_intent(
             ExtractReservationFieldsIn(text=text, language=lang), llm
         )
         if extracted.party_size is not None:
-            await reservation_draft_service.collect_field(
-                customer.id, "party_size", extracted.party_size
-            )
+            try:
+                await reservation_draft_service.collect_field(
+                    customer.id, "party_size", extracted.party_size
+                )
+            except ReservationValidationError as _ve:
+                await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+                return _prompt_for_code(_ve.code, lang)
             return await _next_step_or_confirm(session, customer, lang, llm)
         return _res_prompt(reservation_prompts.PARTY_SIZE, lang), None
 

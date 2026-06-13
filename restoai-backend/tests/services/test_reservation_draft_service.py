@@ -191,12 +191,11 @@ async def test_validate_terrace_too_large_raises(fake_store: _FakeStore) -> None
 
 @pytest.mark.asyncio
 async def test_validate_party_too_large_raises(fake_store: _FakeStore) -> None:
+    """collect_field raises PARTY_TOO_LARGE immediately — before writing the draft. T028."""
     customer_id = uuid4()
     await _make_valid_draft(customer_id, fake_store)
-    await svc.collect_field(customer_id, "party_size", 15)
-
     with pytest.raises(ReservationValidationError) as exc:
-        await svc.validate_ready_to_confirm(customer_id)
+        await svc.collect_field(customer_id, "party_size", 15)
     assert exc.value.code == ReservationValidationCode.PARTY_TOO_LARGE
 
 
@@ -210,3 +209,33 @@ async def test_validate_valid_draft_returns_draft(fake_store: _FakeStore) -> Non
     assert result is not None
     assert result.party_size == 4
     assert result.name == "Alice"
+
+
+# ── T031: collect_field party_size guard (FR-007) ─────────────────────────────
+
+@pytest.mark.asyncio
+async def test_collect_field_party_size_15_raises_before_draft_written(
+    fake_store: _FakeStore,
+) -> None:
+    """collect_field("party_size", 15) raises PARTY_TOO_LARGE before writing. T028, FR-007."""
+    customer_id = uuid4()
+    await svc.start_draft(customer_id, Language.EN)
+
+    with pytest.raises(ReservationValidationError) as exc:
+        await svc.collect_field(customer_id, "party_size", 15)
+
+    assert exc.value.code == ReservationValidationCode.PARTY_TOO_LARGE
+
+    # Draft must NOT have party_size written
+    draft = await svc.get_draft(customer_id)
+    assert draft is not None
+    assert draft.party_size is None
+
+
+@pytest.mark.asyncio
+async def test_collect_field_party_size_14_succeeds(fake_store: _FakeStore) -> None:
+    """collect_field("party_size", 14) is within the limit and must succeed. T031, FR-007."""
+    customer_id = uuid4()
+    await svc.start_draft(customer_id, Language.EN)
+    result = await svc.collect_field(customer_id, "party_size", 14)
+    assert result.party_size == 14
