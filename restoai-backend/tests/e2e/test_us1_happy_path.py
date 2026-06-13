@@ -145,7 +145,7 @@ async def test_us1_start_sends_welcome_and_menu(monkeypatch: pytest.MonkeyPatch)
 async def test_us1_order_text_resolved_and_fulfillment_prompted(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Step 2: 'I want hummus and fattoush' → items parsed → fulfillment prompt."""
+    """Step 2: 'I want hummus and fattoush' → items parsed → readback with confirm/edit."""
     from app.domain.menu import MenuItem
     from app.services import conversation_service
 
@@ -176,12 +176,12 @@ async def test_us1_order_text_resolved_and_fulfillment_prompted(
     monkeypatch.setattr("app.infra.draft_store.reset_failcount", AsyncMock())
     monkeypatch.setattr("app.infra.draft_store.incr_failcount", AsyncMock(return_value=0))
 
-    # add_items stores items and get_draft returns None (no fulfillment yet)
+    # First get_draft (address check) → None; second (readback check) → draft with items
     monkeypatch.setattr(
         "app.services.conversation_service.order_draft_service",
         type("M", (), {
             "add_items": AsyncMock(),
-            "get_draft": AsyncMock(return_value=None),
+            "get_draft": AsyncMock(side_effect=[None, _draft(fulfillment=None)]),
         })(),
     )
 
@@ -202,7 +202,8 @@ async def test_us1_order_text_resolved_and_fulfillment_prompted(
     buttons = messenger.messages[0]["buttons"]
     assert buttons is not None
     callback_datas = [b.get("callback_data", "") for b in buttons]
-    assert any("fulfillment:delivery" in cd or "fulfillment:pickup" in cd for cd in callback_datas)
+    # New flow: readback shown first; fulfillment asked only after confirm is tapped
+    assert any("confirm:" in cd or "edit:" in cd for cd in callback_datas)
 
 
 @pytest.mark.asyncio

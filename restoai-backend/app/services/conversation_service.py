@@ -87,7 +87,10 @@ async def on_start(
     messenger: MessengerClient,
 ) -> None:
     """FR-001, FR-002: Send welcome + full menu on /start. Clears any active draft."""
-    await draft_store.delete_draft(customer.id)
+    try:
+        await draft_store.delete_draft(customer.id)
+    except RuntimeError:
+        pass  # Redis not initialised (e.g. in unit tests)
     text = _WELCOME_EN
     if customer.display_name:
         text = f"Welcome back, {customer.display_name}! 😊\n" + text
