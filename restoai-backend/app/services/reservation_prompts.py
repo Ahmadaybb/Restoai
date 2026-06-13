@@ -113,6 +113,40 @@ TERRACE_REASK_BUTTONS_AR: list[dict[str, str]] = [
     {"label": "🏠 جوا", "callback_data": "res_seating:indoor"},
 ]
 
+NO_ACTIVE_RESERVATION = {
+    Language.EN: "You don't have any active reservations.",
+    Language.AR_LB: "ما عندك حجوزات نشطة.",
+    Language.ARABIZI: "Ma 3andak 7ajozat nashte.",
+}
+
+SELECT_RESERVATION_MODIFY = {
+    Language.EN: "Which reservation would you like to modify?",
+    Language.AR_LB: "أي حجز بدك تعدّل؟",
+    Language.ARABIZI: "Ayye 7ajez badak t3addel?",
+}
+
+MODIFY_WHICH_FIELD = {
+    Language.EN: "What would you like to change? (date, time, party size, or seating)",
+    Language.AR_LB: "شو بدك تغيّر؟ (التاريخ، الوقت، عدد الأشخاص، أو الجلسة)",
+    Language.ARABIZI: "Shu badak tghayyer? (date, wa2et, 3adad ashkhas, aw jalse)",
+}
+
+MODIFICATION_NOTHING_EXTRACTED = {
+    Language.EN: (
+        "I couldn't identify what to change. "
+        "Please tell me the new date, time, party size, or seating."
+    ),
+    Language.AR_LB: (
+        "ما قدرت أفهم شو بدك تغيّر. "
+        "رجاء حدد التاريخ الجديد، الوقت، عدد الأشخاص، أو الجلسة."
+    ),
+    Language.ARABIZI: (
+        "Ma 3erift shu badak tghayyer. "
+        "7addid el date, wa2et, 3adad, aw jalse l jedide."
+    ),
+}
+
+
 def _build_call_center_redirect() -> dict[Language, str]:
     phone = _get_phone()
     return {

@@ -23,7 +23,12 @@ from app.domain.customer import Address, Customer
 from app.domain.errors import ExternalDependencyError
 from app.domain.language import Intent, Language
 from app.domain.order import OrderItem
-from app.domain.reservation import ReservationValidationCode, ReservationValidationError
+from app.domain.reservation import (
+    Reservation,
+    ReservationValidationCode,
+    ReservationValidationError,
+    SeatingPreference,
+)
 from app.domain.tools import (
     AnswerMenuQuestionIn,
     ExtractReservationFieldsIn,
@@ -53,6 +58,13 @@ from app.services.tools import render_readback as readback_tool
 from app.services.tools import render_reservation_confirmation as render_res_conf_tool
 
 logger = logging.getLogger(__name__)
+
+_MODIFICATION_KEYWORDS = frozenset({
+    "change", "modify", "update", "edit", "reschedule", "adjust", "alter",
+    "بدّل", "غيّر", "عدّل",
+    "تعديل", "تغيير",
+    "badal", "ghayyer", "t3adel",
+})
 
 # Degradation messages per language
 _DEGRADATION = {
@@ -426,7 +438,7 @@ def _resend_seating_prompt(
             _res_prompt(rp.TERRACE_BLOCK, lang),
             rp.TERRACE_REASK_BUTTONS_AR if ar else rp.TERRACE_REASK_BUTTONS_EN,
         )
-    # Default: re-send indoor/outdoor
+    # reservation_modify_seating or default: re-send indoor/outdoor
     return (
         _res_prompt(rp.INDOOR_OUTDOOR, lang),
         rp.INDOOR_OUTDOOR_BUTTONS_AR if ar else rp.INDOOR_OUTDOOR_BUTTONS_EN,
@@ -492,6 +504,21 @@ async def _handle_reservation_intent(
 
     # ── Fresh start or re-entry ───────────────────────────────────────────────
     if not waiting_for or not waiting_for.startswith("reservation_"):
+        # T037: detect modification intent before starting a new reservation
+        if _looks_like_modification(text):
+            reservations = await reservation_service.find_active_by_customer(session, customer.id)
+            if reservations:
+                if len(reservations) == 1:
+                    return await _handle_modification_intent(
+                        session, customer, text, lang, llm, reservations[0]
+                    )
+                # T035: multiple reservations → selection buttons
+                await draft_store.put_chat_state(
+                    customer.id, {"waiting_for": "reservation_select_for_modify"}
+                )
+                buttons = _build_reservation_select_buttons(reservations)
+                return _res_prompt(reservation_prompts.SELECT_RESERVATION_MODIFY, lang), buttons
+
         draft = await reservation_draft_service.get_draft(customer.id)
         if draft is None:
             draft = await reservation_draft_service.start_draft(customer.id, lang)
@@ -601,10 +628,197 @@ async def _handle_reservation_intent(
         "reservation_seating_smoking",
         "reservation_seating_terrace",
         "reservation_seating_reask",
+        "reservation_modify_seating",  # T034: text fallback during modification seating
     ):
         return _resend_seating_prompt(waiting_for, lang)
+
+    # ── Modification: waiting for the user to state what to change (T037) ─────
+    if waiting_for == "reservation_modify_pending":
+        res_id_str: str = chat_state.get("modification_reservation_id", "")
+        if res_id_str:
+            res = await reservation_service.get_by_id(session, UUID(res_id_str))
+            if res is not None:
+                return await _handle_modification_intent(session, customer, text, lang, llm, res)
+        await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+        return _res_prompt(reservation_prompts.DATE, lang), None
+
+    # ── Modification: re-send selection buttons when user types (T035) ────────
+    if waiting_for == "reservation_select_for_modify":
+        reservations = await reservation_service.find_active_by_customer(session, customer.id)
+        if not reservations:
+            return _res_prompt(reservation_prompts.NO_ACTIVE_RESERVATION, lang), None
+        buttons = _build_reservation_select_buttons(reservations)
+        return _res_prompt(reservation_prompts.SELECT_RESERVATION_MODIFY, lang), buttons
 
     # ── Unknown state — restart ───────────────────────────────────────────────
     await reservation_draft_service.start_draft(customer.id, lang)
     await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
     return _res_prompt(reservation_prompts.DATE, lang), None
+
+
+# ── Modification helpers ──────────────────────────────────────────────────────
+
+
+def _looks_like_modification(text: str) -> bool:
+    """Quick keyword scan to route modification intents before an LLM call. T037."""
+    lower = text.lower()
+    return any(kw in lower for kw in _MODIFICATION_KEYWORDS)
+
+
+def _build_reservation_select_buttons(
+    reservations: list[Reservation],
+) -> list[dict[str, str]]:
+    """Build res_select:{id} buttons labelled '{ref} — {day} {date} {time}'. T035, R9."""
+    buttons = []
+    for res in reservations:
+        day = res.date.strftime("%a")
+        date_str = res.date.strftime("%d %b")
+        time_str = res.time.strftime("%I:%M %p").lstrip("0")
+        label = f"{res.reference} — {day} {date_str} {time_str}"
+        buttons.append({"label": label, "callback_data": f"res_select:{res.id}"})
+    return buttons
+
+
+async def _handle_modification_intent(
+    session: AsyncSession,
+    customer: Customer,
+    text: str,
+    lang: Language,
+    llm: LLMClient,
+    reservation: Reservation,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """FR-013, FR-014, FR-015, FR-016: State machine for modifying an existing reservation.
+
+    Called from _handle_reservation_intent (T037) and from the router after res_select: (T036).
+    """
+    # If text is empty (arriving from a callback), ask what to change
+    if not text.strip():
+        await draft_store.put_chat_state(
+            customer.id,
+            {
+                "waiting_for": "reservation_modify_pending",
+                "modification_reservation_id": str(reservation.id),
+            },
+        )
+        return _res_prompt(reservation_prompts.MODIFY_WHICH_FIELD, lang), None
+
+    # Extract the fields the user wants to change
+    extracted = await extract_res_tool.extract_reservation_fields(
+        ExtractReservationFieldsIn(text=text, language=lang), llm
+    )
+
+    fields: dict[str, object] = {}
+    if extracted.date is not None:
+        fields["date"] = extracted.date
+    if extracted.time is not None:
+        fields["time"] = extracted.time
+    if extracted.party_size is not None:
+        try:
+            await reservation_draft_service.collect_field(
+                customer.id, "party_size", extracted.party_size
+            )
+        except ReservationValidationError:
+            # Reuse the same redirect guard as initial booking (PARTY_TOO_LARGE)
+            await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+            return _prompt_for_code(ReservationValidationCode.PARTY_TOO_LARGE, lang)
+        fields["party_size"] = extracted.party_size
+
+    if not fields:
+        await draft_store.put_chat_state(
+            customer.id,
+            {
+                "waiting_for": "reservation_modify_pending",
+                "modification_reservation_id": str(reservation.id),
+            },
+        )
+        return _res_prompt(reservation_prompts.MODIFICATION_NOTHING_EXTRACTED, lang), None
+
+    try:
+        updated = await reservation_service.modify(
+            session, customer.id, reservation.id, fields
+        )
+    except ReservationValidationError as ve:
+        if ve.code == ReservationValidationCode.TERRACE_TOO_LARGE:
+            ar = _is_arabic(lang)
+            rp = reservation_prompts
+            await draft_store.put_chat_state(
+                customer.id,
+                {
+                    "waiting_for": "reservation_modify_seating",
+                    "modification_reservation_id": str(reservation.id),
+                },
+            )
+            return (
+                _res_prompt(rp.TERRACE_BLOCK, lang),
+                rp.TERRACE_REASK_BUTTONS_AR if ar else rp.TERRACE_REASK_BUTTONS_EN,
+            )
+        return _prompt_for_code(ve.code, lang)
+
+    conf_out = await render_res_conf_tool.render_reservation_confirmation(
+        RenderReservationConfirmationIn(
+            reservation=updated, language=lang, is_modification=True
+        ),
+        llm=llm,
+    )
+    await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+    return conf_out.text, None
+
+
+async def begin_modification(
+    session: AsyncSession,
+    customer: Customer,
+    reservation_id: UUID,
+    chat_id: int,
+    messenger: MessengerClient,
+    llm: LLMClient,
+) -> None:
+    """Public. Called from router after res_select: in modify context. T036."""
+    res = await reservation_service.get_by_id(session, reservation_id)
+    if res is None:
+        await messenger.send_message(
+            chat_id=chat_id,
+            text="Sorry, that reservation could not be found.",
+        )
+        return
+    text, buttons = await _handle_modification_intent(
+        session, customer, "", res.language, llm, res
+    )
+    await messenger.send_message(chat_id=chat_id, text=text, buttons=buttons)
+
+
+async def continue_modification_flow(
+    session: AsyncSession,
+    customer: Customer,
+    reservation_id: UUID,
+    seating_preference: SeatingPreference,
+    chat_id: int,
+    messenger: MessengerClient,
+    llm: LLMClient,
+    lang: Language,
+) -> None:
+    """Public. Called from router when user clicks a seating button during modification. T034."""
+    try:
+        updated = await reservation_service.modify(
+            session, customer.id, reservation_id, {"seating_preference": seating_preference}
+        )
+    except ReservationValidationError as ve:
+        if ve.code == ReservationValidationCode.TERRACE_TOO_LARGE:
+            await draft_store.put_chat_state(
+                customer.id,
+                {
+                    "waiting_for": "reservation_modify_seating",
+                    "modification_reservation_id": str(reservation_id),
+                },
+            )
+        text, buttons = _prompt_for_code(ve.code, lang)
+        await messenger.send_message(chat_id=chat_id, text=text, buttons=buttons)
+        return
+
+    conf_out = await render_res_conf_tool.render_reservation_confirmation(
+        RenderReservationConfirmationIn(
+            reservation=updated, language=lang, is_modification=True
+        ),
+        llm=llm,
+    )
+    await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+    await messenger.send_message(chat_id=chat_id, text=conf_out.text)

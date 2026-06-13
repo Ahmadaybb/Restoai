@@ -275,6 +275,17 @@ async def _process_update(
                 cq_data, customer, chat_id, telegram, session, llm
             )
 
+        elif cq_data.startswith("res_select:"):
+            # T036: dispatch based on which action was pending
+            reservation_id = UUID(cq_data.split(":", 1)[1])
+            cq_chat_state = await draft_store.get_chat_state(customer.id) or {}
+            cq_waiting_for = cq_chat_state.get("waiting_for", "")
+            if cq_waiting_for == "reservation_select_for_modify" and llm is not None:
+                await conversation_service.begin_modification(
+                    session, customer, reservation_id, chat_id, telegram, llm
+                )
+            # reservation_select_for_cancel handled in Phase 6 (T041)
+
         elif cq_data.startswith("res_date_confirm:"):
             # res_date_confirm:{customer_id}:{iso_date}
             parts = cq_data.split(":", 2)
@@ -313,11 +324,16 @@ async def _handle_res_seating_callback(
     session: AsyncSession,
     llm: Any,
 ) -> None:
-    """Route res_seating:* callback to the appropriate seating sub-step. T024, FR-006."""
+    """Route res_seating:* callback to the appropriate seating sub-step. T024, T034, FR-006."""
     seating_val = cq_data.split(":", 1)[1]
     res_draft = await reservation_draft_service.get_draft(customer.id)
     lang: Language = res_draft.language if res_draft else Language.EN
     ar = lang in (Language.AR_LB, Language.ARABIZI)
+
+    # T034: check if we're in modification seating context
+    cb_chat_state = await draft_store.get_chat_state(customer.id) or {}
+    is_modification = cb_chat_state.get("waiting_for") == "reservation_modify_seating"
+    modification_reservation_id: str = cb_chat_state.get("modification_reservation_id", "")
 
     if seating_val == "indoor":
         await draft_store.put_chat_state(
@@ -351,24 +367,40 @@ async def _handle_res_seating_callback(
             "indoor_non_smoking": SeatingPreference.INDOOR_NON_SMOKING,
             "outdoor_non_terrace": SeatingPreference.OUTDOOR_NON_TERRACE,
         }
-        await reservation_draft_service.collect_field(
-            customer.id, "seating_preference", sp_map[seating_val]
-        )
-        if llm is not None:
-            await conversation_service.continue_reservation_flow(
-                session, customer, chat_id, telegram, llm, lang
+        sp = sp_map[seating_val]
+        if is_modification and modification_reservation_id and llm is not None:
+            # T034: modification context — update the existing reservation's seating
+            await conversation_service.continue_modification_flow(
+                session, customer, UUID(modification_reservation_id),
+                sp, chat_id, telegram, llm, lang
             )
+        else:
+            await reservation_draft_service.collect_field(
+                customer.id, "seating_preference", sp
+            )
+            if llm is not None:
+                await conversation_service.continue_reservation_flow(
+                    session, customer, chat_id, telegram, llm, lang
+                )
 
     elif seating_val == "outdoor_terrace":
-        # Save outdoor_terrace; _next_step_or_confirm raises TERRACE_TOO_LARGE if
-        # party_size > 5 → sends terrace block message (FR-006, T023).
-        await reservation_draft_service.collect_field(
-            customer.id, "seating_preference", SeatingPreference.OUTDOOR_TERRACE
-        )
-        if llm is not None:
-            await conversation_service.continue_reservation_flow(
-                session, customer, chat_id, telegram, llm, lang
+        sp = SeatingPreference.OUTDOOR_TERRACE
+        if is_modification and modification_reservation_id and llm is not None:
+            # T034: modification context
+            await conversation_service.continue_modification_flow(
+                session, customer, UUID(modification_reservation_id),
+                sp, chat_id, telegram, llm, lang
             )
+        else:
+            # Save outdoor_terrace; _next_step_or_confirm raises TERRACE_TOO_LARGE if
+            # party_size > 5 → sends terrace block message (FR-006, T023).
+            await reservation_draft_service.collect_field(
+                customer.id, "seating_preference", SeatingPreference.OUTDOOR_TERRACE
+            )
+            if llm is not None:
+                await conversation_service.continue_reservation_flow(
+                    session, customer, chat_id, telegram, llm, lang
+                )
 
 
 @router.post("/telegram/webhook/{secret_path}")

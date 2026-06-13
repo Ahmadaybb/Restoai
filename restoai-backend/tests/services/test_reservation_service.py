@@ -19,6 +19,7 @@ from app.domain.language import Language
 from app.domain.reservation import (
     Reservation,
     ReservationDraft,
+    ReservationState,
     ReservationValidationCode,
     ReservationValidationError,
     SeatingPreference,
@@ -161,3 +162,134 @@ async def test_confirm_calls_repo_create_exactly_once(
     await reservation_service.confirm(session, draft.customer_id)
 
     assert create_mock.await_count == 1
+
+
+# ── T038: ReservationService.modify ──────────────────────────────────────────
+
+def _make_reservation(
+    party_size: int = 4,
+    seating: SeatingPreference = SeatingPreference.INDOOR_NON_SMOKING,
+) -> Reservation:
+    return Reservation(
+        customer_id=uuid4(),
+        reference="RES-ABCDEF1",
+        date=_tomorrow(),
+        time=_dt.time(19, 0),
+        party_size=party_size,
+        name="Alice",
+        phone="+96171234567",
+        seating_preference=seating,
+        state=ReservationState.ACTIVE,
+        language=Language.EN,
+    )
+
+
+@pytest.mark.asyncio
+async def test_modify_updates_date_reference_unchanged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(a) modify updates date; reference must be unchanged. T038, FR-013."""
+    from app.services import reservation_service
+
+    res = _make_reservation()
+    new_date = _tomorrow() + _dt.timedelta(days=7)
+
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.get_by_id",
+        AsyncMock(return_value=res),
+    )
+    updated = res.model_copy(update={"date": new_date})
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.update_fields",
+        AsyncMock(return_value=updated),
+    )
+
+    session = AsyncMock()
+    result = await reservation_service.modify(
+        session, res.customer_id, res.id, {"date": new_date}
+    )
+
+    assert result.date == new_date
+    assert result.reference == "RES-ABCDEF1"
+
+
+@pytest.mark.asyncio
+async def test_modify_party_size_on_terrace_raises_terrace_too_large(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(b) party_size=6 on OUTDOOR_TERRACE booking raises TERRACE_TOO_LARGE. T038, FR-015."""
+    from app.services import reservation_service
+
+    res = _make_reservation(party_size=3, seating=SeatingPreference.OUTDOOR_TERRACE)
+
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.get_by_id",
+        AsyncMock(return_value=res),
+    )
+
+    session = AsyncMock()
+    with pytest.raises(ReservationValidationError) as exc:
+        await reservation_service.modify(
+            session, res.customer_id, res.id, {"party_size": 6}
+        )
+
+    assert exc.value.code == ReservationValidationCode.TERRACE_TOO_LARGE
+
+
+@pytest.mark.asyncio
+async def test_modify_party_size_on_terrace_within_limit_succeeds(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(c) party_size=4 on OUTDOOR_TERRACE booking (≤5) succeeds. T038, FR-015."""
+    from app.services import reservation_service
+
+    res = _make_reservation(party_size=3, seating=SeatingPreference.OUTDOOR_TERRACE)
+    updated = res.model_copy(update={"party_size": 4})
+
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.get_by_id",
+        AsyncMock(return_value=res),
+    )
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.update_fields",
+        AsyncMock(return_value=updated),
+    )
+
+    session = AsyncMock()
+    result = await reservation_service.modify(
+        session, res.customer_id, res.id, {"party_size": 4}
+    )
+
+    assert result.party_size == 4
+    assert result.seating_preference == SeatingPreference.OUTDOOR_TERRACE
+
+
+@pytest.mark.asyncio
+async def test_modify_seating_from_terrace_to_indoor_succeeds(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """(d) seating change from OUTDOOR_TERRACE to INDOOR_NON_SMOKING succeeds. T038."""
+    from app.services import reservation_service
+
+    res = _make_reservation(party_size=6, seating=SeatingPreference.OUTDOOR_TERRACE)
+    updated = res.model_copy(
+        update={"seating_preference": SeatingPreference.INDOOR_NON_SMOKING}
+    )
+
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.get_by_id",
+        AsyncMock(return_value=res),
+    )
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.update_fields",
+        AsyncMock(return_value=updated),
+    )
+
+    session = AsyncMock()
+    result = await reservation_service.modify(
+        session, res.customer_id, res.id,
+        {"seating_preference": SeatingPreference.INDOOR_NON_SMOKING},
+    )
+
+    assert result.seating_preference == SeatingPreference.INDOOR_NON_SMOKING
+    assert result.reference == "RES-ABCDEF1"
