@@ -18,8 +18,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_session
 from app.api.dispatcher.auth import require_auth, validate_dispatcher_name
-from app.db.engine import get_session
 from app.services import dispatcher_service, escalation_service
 from app.services.tools.summarize_for_dispatcher import summarize_for_dispatcher
 

@@ -24,7 +24,7 @@ from app.domain.menu import MenuChunk, MenuItem
 logger = logging.getLogger(__name__)
 
 _MENU_PATH = Path("data/menu_full_ar.json")
-_FUZZY_THRESHOLD = 60
+_FUZZY_THRESHOLD = 50
 
 _menu_cache: dict[str, MenuItem] = {}
 

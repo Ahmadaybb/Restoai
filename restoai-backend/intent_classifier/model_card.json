@@ -8,15 +8,15 @@
     "status",
     "image"
   ],
-  "artifact_md5": "dc445cb9846554b24b68a190e189965b",
+  "artifact_md5": "a0cf850622f0501967d9e4d23d0daef1",
   "metrics": {
-    "macro_f1": 0.9378,
-    "accuracy": 0.9444,
+    "macro_f1": 1.0,
+    "accuracy": 1.0,
     "per_class_f1": {
-      "order": 0.8,
+      "order": 1.0,
       "reservation": 1.0,
       "query": 1.0,
-      "status": 0.8889,
+      "status": 1.0,
       "image": 1.0
     }
   },
@@ -25,5 +25,5 @@
     "Arabic (Lebanese dialect)",
     "Arabizi"
   ],
-  "notes": "Trained on CLINC150 + ArBanking77 + synthetic Lebanese Arabic examples"
+  "notes": "Retrained on synthetic dataset covering English, Arabizi, and Lebanese Arabic ordering phrases. Evaluated on eval_slice.jsonl (22 samples). sklearn 1.6.1 required."
 }

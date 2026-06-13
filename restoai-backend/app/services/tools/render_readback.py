@@ -6,6 +6,8 @@ Includes the mandatory "final pricing is confirmed by the dispatcher" line.
 """
 import logging
 from decimal import Decimal
+from functools import lru_cache
+from pathlib import Path
 
 from app.domain.clients import LLMClient
 from app.domain.language import Language
@@ -14,20 +16,18 @@ from app.repositories import menu_repo
 
 logger = logging.getLogger(__name__)
 
-_SYSTEM_EN = """\
-You are writing an order confirmation message for a Lebanese restaurant bot.
-Be friendly, concise, and accurate. List items with quantities and any
-customizations under each item. End with the estimated total and this exact
-line: "Note: final pricing is confirmed by the dispatcher."
+_PROMPTS_DIR = Path(__file__).parent.parent.parent / "prompts"
 
-Format as plain text suitable for Telegram. No markdown tables.
-"""
 
-_SYSTEM_AR = """\
-أنت تكتب رسالة تأكيد طلب لروبوت مطعم لبناني.
-كن ودودًا وموجزًا ودقيقًا. اذكر العناصر مع الكميات وأي تعديلات تحتها.
-انتهِ بالإجمالي المقدر وهذه الجملة بالضبط: "ملاحظة: السعر النهائي يؤكده المسؤول."
-"""
+@lru_cache(maxsize=8)
+def _load_system_prompt(lang_dir: str) -> str:
+    path = _PROMPTS_DIR / lang_dir / "render_readback.txt"
+    return path.read_text(encoding="utf-8")
+
+
+def _system_for(language: Language) -> str:
+    lang_dir = "ar_lb" if language == Language.AR_LB else "en"
+    return _load_system_prompt(lang_dir)
 
 
 def _compute_total(inp: RenderReadbackIn) -> Decimal:
@@ -47,7 +47,7 @@ def _build_summary(inp: RenderReadbackIn) -> str:
         lines.append(f"- {item.quantity}x {name}")
         for c in item.customizations:
             lines.append(f"  • {c.text}")
-    fulfillment_line = f"Fulfillment: {inp.draft.fulfillment or 'not chosen'}"
+    fulfillment_line = f"Fulfillment: {inp.draft.fulfillment}" if inp.draft.fulfillment else ""
     addr_line = ""
     if inp.draft.address:
         if inp.draft.address.text_value:
@@ -64,7 +64,7 @@ async def render_readback(
     llm: LLMClient,
 ) -> RenderReadbackOut:
     summary = _build_summary(inp)
-    system = _SYSTEM_AR if inp.language == Language.AR_LB else _SYSTEM_EN
+    system = _system_for(inp.language)
 
     try:
         text = await llm.complete_synthesis(

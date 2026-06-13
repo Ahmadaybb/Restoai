@@ -151,10 +151,11 @@ async def select_saved_address(
 
 
 async def reopen_for_edit(customer_id: UUID, draft_id: UUID) -> OrderDraft:
-    """FR-018: Preserve items, customizations, fulfillment, address on edit."""
+    """FR-018: Clear items so the customer re-states their order; preserve fulfillment and address."""
     draft = await get_draft(customer_id)
     if draft is None or draft.id != draft_id:
         draft = OrderDraft(customer_id=customer_id)
+    draft = draft.model_copy(update={"items": []})
     await draft_store.put_draft(customer_id, _serialize(draft))
     return draft
 

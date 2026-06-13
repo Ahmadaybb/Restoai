@@ -9,14 +9,13 @@ T062: on_start welcome flow (FR-001, FR-002).
 T069: graceful degradation on ExternalDependencyError (FR-034).
 """
 import logging
-from typing import Any
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.clients import EmbeddingClient, LLMClient, MessengerClient
 from app.domain.conversation import Turn
-from app.domain.customer import Customer
+from app.domain.customer import Address, Customer
 from app.domain.errors import ExternalDependencyError
 from app.domain.language import Intent, Language
 from app.domain.order import OrderItem
@@ -29,7 +28,7 @@ from app.domain.tools import (
 from app.infra import draft_store
 from app.infra.intent_classifier import classify
 from app.infra.redaction import redact
-from app.repositories import menu_repo, transcript_repo
+from app.repositories import transcript_repo
 from app.services import customer_service, order_draft_service
 from app.services.language_service import detect as lang_detect
 from app.services.language_service import reply_language
@@ -57,13 +56,15 @@ _DEGRADATION = {
 }
 
 _WELCOME_EN = (
-    "👋 Welcome to {restaurant}! I'm your order assistant.\n\n"
-    "Here's our menu:\n\n{menu}\n\n"
+    "👋 Welcome to Lakkis Farm! I'm your order assistant.\n\n"
+    "🍽️ View our full menu here:\n"
+    "https://menu.omegasoftware.ca/mlmksal\n\n"
     "Just tell me what you'd like to order!"
 )
 _WELCOME_AR = (
-    "👋 أهلاً بك في {restaurant}! أنا مساعدك للطلبات.\n\n"
-    "إليك قائمة طعامنا:\n\n{menu}\n\n"
+    "👋 أهلاً بك في لاكيس فارم! أنا مساعدك للطلبات.\n\n"
+    "🍽️ شاهد قائمة طعامنا الكاملة هنا:\n"
+    "https://menu.omegasoftware.ca/mlmksal\n\n"
     "فقط أخبرني بما تريد طلبه!"
 )
 
@@ -79,44 +80,17 @@ _QUERY_STUB_AR = "الإجابة على أسئلة القائمة ستكون م�
 RESTAURANT_NAME = "Lakkis Farm"
 
 
-def _build_menu_text(language: Language) -> str:
-    items = menu_repo.get_menu()
-    by_category: dict[str, list[Any]] = {}
-    for item in items:
-        if not item.available:
-            continue
-        cat = item.category
-        if cat not in by_category:
-            by_category[cat] = []
-        by_category[cat].append(item)
-
-    lines = []
-    for cat, cat_items in list(by_category.items())[:10]:
-        lines.append(f"📌 {cat}")
-        for item in cat_items[:8]:
-            name = item.name_ar if language == Language.AR_LB else item.name_en
-            lines.append(f"  • {name} — ${item.price_usd:.2f}")
-    return "\n".join(lines)
-
-
 async def on_start(
     session: AsyncSession,
     customer: Customer,
     telegram_chat_id: int,
     messenger: MessengerClient,
 ) -> None:
-    """FR-001, FR-002: Send welcome + full menu on /start."""
-    lang = Language.EN
+    """FR-001, FR-002: Send welcome + full menu on /start. Clears any active draft."""
+    await draft_store.delete_draft(customer.id)
+    text = _WELCOME_EN
     if customer.display_name:
-        greeting = f"Welcome back, {customer.display_name}! 😊\n"
-    else:
-        greeting = ""
-
-    menu_text = _build_menu_text(lang)
-    template = _WELCOME_AR if lang == Language.AR_LB else _WELCOME_EN
-    text = template.format(restaurant=RESTAURANT_NAME, menu=menu_text)
-    if greeting:
-        text = greeting + text
+        text = f"Welcome back, {customer.display_name}! 😊\n" + text
 
     await messenger.send_message(chat_id=telegram_chat_id, text=text)
 
@@ -125,7 +99,7 @@ async def on_start(
         conversation_id=conv.id,
         sender="bot",
         text=redact(text)[:4000],
-        language=lang,
+        language=Language.EN,
     )
     await transcript_repo.append_turn(session, turn)
     await session.commit()
@@ -170,7 +144,7 @@ async def handle_text(
     buttons: list[dict[str, str]] | None = None
 
     try:
-        if intent_result == Intent.ORDER:
+        if intent_result in (Intent.ORDER, Intent.UNKNOWN):
             reply_text, buttons = await _handle_order_intent(
                 session, customer, text, reply_lang, llm, conv.id
             )
@@ -242,6 +216,20 @@ async def _handle_order_intent(
 ) -> tuple[str, list[dict[str, str]] | None]:
     """Two-pass parse_order → match_dish pipeline (T051)."""
 
+    # If draft is awaiting a text delivery address, save it and skip order parsing.
+    draft_check = await order_draft_service.get_draft(customer.id)
+    if draft_check and draft_check.fulfillment == "delivery" and draft_check.address is None:
+        address = Address(kind="text", text_value=text, customer_id=customer.id)
+        updated_draft = await order_draft_service.attach_address(
+            customer.id, address, session=session
+        )
+        readback = await readback_tool.render_readback(
+            RenderReadbackIn(draft=updated_draft, language=reply_lang),
+            llm=llm,
+        )
+        buttons = [b.model_dump() for b in readback.buttons]
+        return readback.text, buttons
+
     # Detect language for the tool
     detected = lang_detect(text)
 
@@ -288,24 +276,14 @@ async def _handle_order_intent(
             None,
         )
 
-    # Check if fulfillment is set
+    # Show readback whenever the draft has items; fulfillment/address are gated
+    # at confirm time so the user sees their cart first.
     draft = await order_draft_service.get_draft(customer.id)
-    if draft is None or draft.fulfillment is None:
-        buttons = [
-            {"label": "🛵 Delivery", "callback_data": "fulfillment:delivery"},
-            {"label": "🏪 Pickup", "callback_data": "fulfillment:pickup"},
-        ]
+    if draft is None or not draft.items:
         if reply_lang == Language.AR_LB:
-            return _FULFILLMENT_PROMPT_AR, buttons
-        return _FULFILLMENT_PROMPT_EN, buttons
+            return "ما الذي تريد طلبه؟", None
+        return "What would you like to order?", None
 
-    # Has items + fulfillment — offer readback
-    if draft.fulfillment == "delivery" and draft.address is None:
-        if reply_lang == Language.AR_LB:
-            return _ADDRESS_PROMPT_AR, None
-        return _ADDRESS_PROMPT_EN, None
-
-    # Ready for readback
     readback = await readback_tool.render_readback(
         RenderReadbackIn(draft=draft, language=reply_lang),
         llm=llm,

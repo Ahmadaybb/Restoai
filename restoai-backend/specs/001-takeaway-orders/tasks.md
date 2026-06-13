@@ -196,11 +196,11 @@ description: "Dependency-ordered task list for feature 001-takeaway-orders"
 
 **Purpose**: Documentation, decision records, final cross-cutting verification.
 
-- [ ] T100 [P] Flesh out `DECISIONS.md` with full rationale paragraphs for each of the ten architecture decisions (one paragraph per entry, with evidence collected during implementation). Constitution Principle VI.
-- [ ] T101 [P] Flesh out `ARCH.md` with: layered-architecture diagram, request lifecycle for a Telegram update, request lifecycle for a dispatcher REST call, data-flow for `OrderDraft → ConfirmedOrder`, escalation flow. Constitution Principle VI.
-- [ ] T102 [P] Flesh out `RUNBOOK.md` with the operational procedures listed in T015, fully written. Constitution Principle VI.
-- [ ] T103 [P] Flesh out `README.md` as the 5-minute setup pointing operators to `quickstart.md` for the deeper walkthrough. Constitution Principle VI.
-- [ ] T104 Run the `quickstart.md` US1 walkthrough end-to-end against the running `docker compose` stack, then run the multilingual smoke check and the FR-034 failure-path smoke checks. Update tasks or contracts for any gap surfaced. Per `quickstart.md`.
+- [X] T100 [P] Flesh out `DECISIONS.md` with full rationale paragraphs for each of the ten architecture decisions (one paragraph per entry, with evidence collected during implementation). Constitution Principle VI.
+- [X] T101 [P] Flesh out `ARCH.md` with: layered-architecture diagram, request lifecycle for a Telegram update, request lifecycle for a dispatcher REST call, data-flow for `OrderDraft → ConfirmedOrder`, escalation flow. Constitution Principle VI.
+- [X] T102 [P] Flesh out `RUNBOOK.md` with the operational procedures listed in T015, fully written. Constitution Principle VI.
+- [X] T103 [P] Flesh out `README.md` as the 5-minute setup pointing operators to `quickstart.md` for the deeper walkthrough. Constitution Principle VI.
+- [X] T104 Run the `quickstart.md` US1 walkthrough end-to-end against the running `docker compose` stack, then run the multilingual smoke check and the FR-034 failure-path smoke checks. Update tasks or contracts for any gap surfaced. Per `quickstart.md`.
 
 ---
 

@@ -10,7 +10,7 @@ import asyncio
 import logging
 
 from app.domain.menu import MenuChunk, MenuItem
-from app.infra.embed_client import EmbedderClient, load_embedder
+from app.infra.embed_client import EmbedderClient
 from app.repositories import menu_repo
 
 logger = logging.getLogger(__name__)
@@ -94,6 +94,7 @@ async def embed_and_upsert() -> None:
         chunk.embedding = vec
 
     async for session in get_session():
+        await menu_repo.upsert_menu_items(session)
         await menu_repo.upsert_chunks(session, all_chunks)
         break
 
@@ -102,7 +103,6 @@ async def embed_and_upsert() -> None:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
-    load_embedder()
     asyncio.run(embed_and_upsert())
 
 

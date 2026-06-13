@@ -8,6 +8,7 @@ from pydantic import ValidationError
 _BASE_ENV = {
     "TELEGRAM_BOT_TOKEN": "test-tok",
     "GROQ_API_KEY": "test-key",
+    "VOYAGE_API_KEY": "test-voyage-key",
     "DATABASE_URL": "postgresql+asyncpg://u:p@localhost/db",
     "REDIS_URL": "redis://localhost:6379/0",
     "DISPATCHER_API_TOKEN": "test-dispatch",
@@ -25,5 +26,5 @@ def test_missing_required_key_raises(monkeypatch: pytest.MonkeyPatch, missing_ke
 
     settings_mod.get_settings.cache_clear()
     with pytest.raises(ValidationError):
-        settings_mod.Settings()
+        settings_mod.Settings(_env_file=None)  # type: ignore[call-arg]
     settings_mod.get_settings.cache_clear()

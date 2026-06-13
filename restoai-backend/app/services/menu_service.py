@@ -11,9 +11,15 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.clients import EmbeddingClient
-from app.domain.menu import MenuChunk
+from app.domain.menu import MenuChunk, MenuItem
+from app.repositories import menu_repo
 
 logger = logging.getLogger(__name__)
+
+
+def get_item(menu_item_id: str) -> MenuItem | None:
+    """Return the MenuItem for *menu_item_id*, or None if not found."""
+    return menu_repo.get_item(menu_item_id)
 
 
 async def search(

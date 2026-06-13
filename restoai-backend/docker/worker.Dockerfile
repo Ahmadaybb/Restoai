@@ -2,14 +2,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e .
+COPY pyproject.toml uv.lock ./
 
-COPY . .
+RUN UV_HTTP_TIMEOUT=120 uv sync --frozen --no-dev --no-install-project
 
-CMD ["python", "-m", "rq", "worker", "--with-scheduler", "--url", "${REDIS_URL}", "default"]
+ENV PATH="/app/.venv/bin:$PATH"
+
+COPY app/ ./app/
+COPY data/ ./data/
+
+CMD ["sh", "-c", "uv run rq worker --with-scheduler --url $REDIS_URL default"]

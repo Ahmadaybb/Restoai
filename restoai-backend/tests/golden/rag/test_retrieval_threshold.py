@@ -3,9 +3,9 @@
 Requires:
   - embed_menu CLI to have been run (menu_chunks populated in the DB).
   - DB accessible via DATABASE_URL env var.
-  - Embedder loaded (sentence-transformers model present).
+  - VOYAGE_API_KEY set in the environment.
 
-Skips gracefully when either the DB or the embedder is unavailable so the
+Skips gracefully when either the DB or VOYAGE_API_KEY is unavailable so the
 test can be gated in CI but does not fail in offline dev.
 
 Constitution Principle II; research.md R2; T077.
@@ -36,13 +36,9 @@ async def test_rag_retrieval_hit_at_3() -> None:
     if not database_url:
         pytest.skip("DATABASE_URL not set — skipping golden RAG test")
 
-    from app.infra import embed_client as ec
-
-    if not ec.is_loaded():
-        try:
-            ec.load_embedder()
-        except Exception:
-            pytest.skip("Embedding model not available — skipping golden RAG test")
+    voyage_api_key = os.getenv("VOYAGE_API_KEY", "")
+    if not voyage_api_key:
+        pytest.skip("VOYAGE_API_KEY not set — skipping golden RAG test")
 
     from app.db.engine import get_session, init_engine
     from app.infra.embed_client import EmbedderClient

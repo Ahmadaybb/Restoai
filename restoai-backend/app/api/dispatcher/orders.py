@@ -11,12 +11,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import get_session
 from app.api.dispatcher.auth import require_auth, validate_dispatcher_name
-from app.db.engine import get_session
 from app.domain.customer import Address, Customer
 from app.domain.order import ConfirmedOrder, OrderItem
-from app.repositories import menu_repo
-from app.services import dispatcher_service
+from app.services import dispatcher_service, menu_service
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +113,7 @@ class OrderEditRequest(BaseModel):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _item_out(item: OrderItem) -> OrderItemOut:
-    menu_item = menu_repo.get_item(item.menu_item_id)
+    menu_item = menu_service.get_item(item.menu_item_id)
     return OrderItemOut(
         menu_item_id=item.menu_item_id,
         name=menu_item.name_en if menu_item else item.menu_item_id,

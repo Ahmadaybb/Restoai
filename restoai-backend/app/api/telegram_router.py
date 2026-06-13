@@ -13,7 +13,7 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.errors import ExternalDependencyError
+from app.domain.errors import ExternalDependencyError, OrderValidationCode, OrderValidationError
 from app.infra.redaction import redact
 from app.services import (
     conversation_service,
@@ -29,7 +29,7 @@ router = APIRouter(tags=["telegram"])
 
 async def _dispatch_update(app: object, update_data: dict[str, Any]) -> None:
     """Background task: processes a Telegram update dict."""
-    from app.db.engine import get_session as _gs
+    from app.api.deps import get_session as _gs
 
     session_gen = _gs()
     session: AsyncSession = await session_gen.__anext__()
@@ -126,6 +126,48 @@ async def _process_update(
 
         if cq_data.startswith("confirm:"):
             draft_id = UUID(cq_data.split(":", 1)[1])
+            # Gate on fulfillment and address before placing the order
+            try:
+                await order_draft_service.validate_ready_to_confirm(customer.id)
+            except OrderValidationError as ve:
+                if ve.code == OrderValidationCode.MISSING_FULFILLMENT:
+                    buttons = [
+                        {"label": "🛵 Delivery", "callback_data": "fulfillment:delivery"},
+                        {"label": "🏪 Pickup", "callback_data": "fulfillment:pickup"},
+                    ]
+                    await telegram.send_message(
+                        chat_id=chat_id,
+                        text="How would you like to receive your order?",
+                        buttons=buttons,
+                    )
+                elif ve.code == OrderValidationCode.MISSING_ADDRESS:
+                    if customer.addresses:
+                        addr_buttons = [
+                            {
+                                "label": f"📍 {(a.text_value or 'Saved location')[:40]}",
+                                "callback_data": f"saved_address:{a.id}",
+                            }
+                            for a in customer.addresses
+                        ]
+                        addr_buttons.append(
+                            {"label": "🆕 New address", "callback_data": "new_address"}
+                        )
+                        await telegram.send_message(
+                            chat_id=chat_id,
+                            text="Choose a delivery address:",
+                            buttons=addr_buttons,
+                        )
+                    else:
+                        await telegram.send_message(
+                            chat_id=chat_id,
+                            text="🛵 Please share your delivery address.",
+                        )
+                else:
+                    await telegram.send_message(
+                        chat_id=chat_id,
+                        text="Sorry, there's an issue with your order. Please try again.",
+                    )
+                return
             try:
                 order = await order_service.confirm(session, customer, draft_id)
                 await telegram.send_message(
@@ -196,11 +238,23 @@ async def _process_update(
                 (a for a in customer.addresses if a.id == addr_id), None
             )
             if addr:
-                await order_draft_service.select_saved_address(customer.id, addr)
+                draft = await order_draft_service.select_saved_address(customer.id, addr)
                 await telegram.send_message(
                     chat_id=chat_id,
                     text=f"✅ Using saved address: {addr.text_value or 'saved location'}",
                 )
+                if llm is not None:
+                    from app.domain.tools import RenderReadbackIn
+                    from app.services.tools.render_readback import render_readback
+                    rb = await render_readback(
+                        RenderReadbackIn(draft=draft, language=draft.language),
+                        llm=llm,
+                    )
+                    await telegram.send_message(
+                        chat_id=chat_id,
+                        text=rb.text,
+                        buttons=[b.model_dump() for b in rb.buttons],
+                    )
             else:
                 await telegram.send_message(
                     chat_id=chat_id,

@@ -38,13 +38,19 @@ def _all_imports_under(directory: Path) -> dict[str, list[str]]:
 
 
 def test_api_does_not_import_db_directly() -> None:
+    # deps.py is the designated DB-session gateway — the only file in app/api
+    # that may import from app.db (re-exports get_session for all routers).
+    _GATEWAY = {"app/api/deps.py", "app\\api\\deps.py"}
     violations: list[str] = []
     for filepath, imports in _all_imports_under(APP / "api").items():
+        if filepath in _GATEWAY:
+            continue
         for imp in imports:
             if imp.startswith("app.db") or imp.startswith("app.repositories"):
                 violations.append(f"{filepath}: {imp}")
     assert not violations, (
         "app/api must not import app/db or app/repositories directly.\n"
+        "Use app/api/deps.py as the session gateway instead.\n"
         + "\n".join(violations)
     )
 
