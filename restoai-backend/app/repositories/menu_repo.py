@@ -91,12 +91,16 @@ def find_by_phrase(phrase: str) -> list[MenuItem]:
     """Fuzzy search over en + ar + translit names. Returns best matches."""
     if not _menu_cache:
         return []
+    # Lowercase both sides — rapidfuzz process.extract does NOT auto-lowercase
+    # when a custom scorer is provided, so all-caps names (PEPSI, ICED LATTE)
+    # would score 0 against lowercase customer input without this.
+    phrase_lower = phrase.lower()
     choices = {
-        item_id: f"{item.name_en} {item.name_ar or ''} {item.name_translit or ''}"
+        item_id: f"{item.name_en} {item.name_ar or ''} {item.name_translit or ''}".lower()
         for item_id, item in _menu_cache.items()
     }
     results = process.extract(
-        phrase, choices, scorer=fuzz.token_set_ratio, limit=5
+        phrase_lower, choices, scorer=fuzz.token_set_ratio, limit=5
     )
     return [
         _menu_cache[item_id]

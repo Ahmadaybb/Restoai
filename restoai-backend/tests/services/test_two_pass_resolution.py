@@ -157,8 +157,15 @@ async def test_two_pass_pipeline_in_conversation_service(
     mock_match = AsyncMock(
         return_value=MatchDishOut(menu_item_id="hummus", score=0.9)
     )
+    from app.domain.order import OrderDraft, OrderItem
+
+    _draft_with_items = OrderDraft(
+        customer_id=_CUSTOMER_ID,
+        items=[OrderItem(menu_item_id="hummus", quantity=1)],
+    )
     mock_add_items = AsyncMock(return_value=None)
-    mock_get_draft = AsyncMock(return_value=None)
+    # First call: address-pending check → None; second: readback check → draft with items
+    mock_get_draft = AsyncMock(side_effect=[None, _draft_with_items])
     mock_reset_fail = AsyncMock()
     mock_incr_fail = AsyncMock(return_value=1)
 
