@@ -1,5 +1,6 @@
 """Alembic environment — async engine via asyncpg (research.md R9)."""
 import asyncio
+import os
 from logging.config import fileConfig
 
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -14,8 +15,12 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+def _url() -> str:
+    return os.environ.get("DATABASE_URL") or config.get_main_option("sqlalchemy.url") or ""
+
+
 def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url")
+    url = _url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -38,7 +43,7 @@ def do_run_migrations(connection):  # type: ignore[no-untyped-def]
 
 
 async def run_async_migrations() -> None:
-    url = config.get_main_option("sqlalchemy.url")
+    url = _url()
     connectable = create_async_engine(url)
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

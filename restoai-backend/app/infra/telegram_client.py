@@ -51,15 +51,14 @@ class TelegramClient:
         """Start long-polling loop in the background (dev mode)."""
         from telegram.ext import CallbackQueryHandler, MessageHandler, filters
 
-        self._app = (
-            ApplicationBuilder().token(self._bot_token).build()
-        )
+        self._app = ApplicationBuilder().token(self._bot_token).build()
         self._app.add_handler(
-            MessageHandler(filters.ALL, update_handler)
+            MessageHandler(
+                filters.TEXT | filters.CONTACT | filters.LOCATION,
+                update_handler,
+            )
         )
-        self._app.add_handler(
-            CallbackQueryHandler(update_handler)
-        )
+        self._app.add_handler(CallbackQueryHandler(update_handler))
         logger.info("telegram_polling_started")
         await self._app.initialize()
         await self._app.start()

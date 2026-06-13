@@ -6,7 +6,7 @@ Lifespan order:
   3. Open async DB pool (asyncpg via SQLAlchemy).
   4. Open async Redis pool.
   5. Load IntentClassifier from joblib.
-  6. Load EmbedderClient (sentence-transformers, CPU).
+  6. Instantiate EmbedderClient (Voyage AI API).
   7. Start TelegramClient in polling or webhook mode.
 
 Constitution Principle V: if Settings() raises, the process exits before
@@ -15,12 +15,13 @@ serving any requests.
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI
 
 from app.api.middleware import RequestIdMiddleware
 from app.db.engine import close_engine, init_engine
-from app.infra.embed_client import EmbedderClient, load_embedder
+from app.infra.embed_client import EmbedderClient
 from app.infra.intent_classifier import load_classifier
 from app.infra.logging import configure_logging
 from app.infra.redis_client import close_redis, init_redis
@@ -44,8 +45,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     load_classifier()
 
-    load_embedder()
+    from app.repositories import menu_repo
+    menu_repo.load_menu()
+
     app.state.embedder = EmbedderClient()
+
+    from app.infra.groq_client import GroqClient
+    app.state.llm = GroqClient(api_key=settings.GROQ_API_KEY)
 
     from app.infra.telegram_client import TelegramClient
 
@@ -61,7 +67,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         await _telegram_client.set_webhook()
     else:
         logger.info("telegram_polling_mode")
-        # Polling started externally via the telegram_router background task.
+        from app.api.telegram_router import _dispatch_update
+
+        async def _ptb_handler(update: Any, context: Any) -> None:
+            await _dispatch_update(app, update.to_dict())
+
+        await _telegram_client.start_polling(_ptb_handler)
 
     logger.info("restoai_ready")
 
@@ -83,6 +94,12 @@ app = FastAPI(title="RestoAI Backend", lifespan=lifespan)
 app.add_middleware(RequestIdMiddleware)
 
 # ── Routers ───────────────────────────────────────────────────────────────────
+from app.api.dispatcher.escalations import router as dispatcher_escalations_router  # noqa: E402
+from app.api.dispatcher.orders import router as dispatcher_orders_router  # noqa: E402
 from app.api.health import router as health_router  # noqa: E402
+from app.api.telegram_router import router as telegram_router  # noqa: E402
 
 app.include_router(health_router)
+app.include_router(dispatcher_orders_router)
+app.include_router(dispatcher_escalations_router)
+app.include_router(telegram_router)

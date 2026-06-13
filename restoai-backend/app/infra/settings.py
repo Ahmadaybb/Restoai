@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     # ── Required — app refuses to boot when any of these are missing ──────────
     TELEGRAM_BOT_TOKEN: str
     GROQ_API_KEY: str
+    VOYAGE_API_KEY: str
     DATABASE_URL: str
     REDIS_URL: str
     DISPATCHER_API_TOKEN: str

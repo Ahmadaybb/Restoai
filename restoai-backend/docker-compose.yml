@@ -1,9 +1,6 @@
-version: "3.9"
-
 volumes:
   pgdata:
   redisdata:
-  hfcache:
 
 services:
   db:
@@ -17,7 +14,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U restoai"]
+      test: [ "CMD-SHELL", "pg_isready -U restoai" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -27,7 +24,7 @@ services:
     volumes:
       - redisdata:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -53,7 +50,6 @@ services:
       DATABASE_URL: postgresql+asyncpg://restoai:restoai@db:5432/restoai
       REDIS_URL: redis://redis:6379/0
     volumes:
-      - hfcache:/root/.cache/huggingface
       - ./data:/app/data:ro
     ports:
       - "8000:8000"
@@ -72,7 +68,6 @@ services:
       DATABASE_URL: postgresql+asyncpg://restoai:restoai@db:5432/restoai
       REDIS_URL: redis://redis:6379/0
     volumes:
-      - hfcache:/root/.cache/huggingface
       - ./data:/app/data:ro
     depends_on:
       migrate:

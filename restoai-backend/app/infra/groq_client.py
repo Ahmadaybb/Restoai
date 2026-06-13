@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Model ids — update here when Groq rotates aliases
 _MECHANICAL_MODEL = "llama-3.1-8b-instant"
-_SYNTHESIS_MODEL = "llama-3.1-70b-versatile"
+_SYNTHESIS_MODEL = "llama-3.3-70b-versatile"
 
 # Approximate cost per 1M tokens (USD) — update quarterly per cost log review
 _COST_PER_1M: dict[str, dict[str, float]] = {

@@ -41,13 +41,19 @@ def classify(text: str) -> tuple[Intent, float]:
         )
 
     label: str = str(_classifier.predict([text])[0])
-    proba_array = _classifier.predict_proba([text])[0]
-    classes: list[str] = list(_classifier.classes_)
 
-    if label in classes:
-        confidence = float(proba_array[classes.index(label)])
-    else:
-        confidence = 0.0
+    try:
+        proba_array = _classifier.predict_proba([text])[0]
+        classes: list[str] = list(_classifier.classes_)
+        confidence = float(proba_array[classes.index(label)]) if label in classes else 0.0
+    except AttributeError:
+        # LinearSVC lacks predict_proba; use decision_function margin instead.
+        decisions = _classifier.decision_function([text])[0]
+        if hasattr(decisions, "__len__"):
+            raw = float(max(decisions))
+        else:
+            raw = float(decisions)
+        confidence = min(1.0, max(0.0, (raw + 1.0) / 2.0))
 
     if confidence < _CONFIDENCE_THRESHOLD:
         return Intent.UNKNOWN, confidence
