@@ -1,4 +1,7 @@
 """Pydantic input/output models for every internal LLM-callable tool."""
+from __future__ import annotations
+
+import datetime as _dt
 from typing import Any, Literal
 from uuid import UUID
 
@@ -6,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from app.domain.language import Language
 from app.domain.order import OrderDraft, OrderItem
+from app.domain.reservation import Reservation
 
 # ── parse_order ──────────────────────────────────────────────────────────────
 
@@ -119,3 +123,31 @@ class SummarizeForDispatcherIn(BaseModel):
 
 class SummarizeForDispatcherOut(BaseModel):
     summary: str
+
+
+# ── extract_reservation_fields ────────────────────────────────────────────────
+
+class ExtractReservationFieldsIn(BaseModel):
+    text: str = Field(max_length=1000)
+    language: Language
+
+
+class ExtractedReservationFields(BaseModel):
+    date: _dt.date | None = None
+    time: _dt.time | None = None
+    party_size: int | None = None
+    name: str | None = None
+    phone: str | None = None
+    date_is_informal: bool = False
+
+
+# ── render_reservation_confirmation ──────────────────────────────────────────
+
+class RenderReservationConfirmationIn(BaseModel):
+    reservation: Reservation
+    language: Language
+    is_modification: bool = False
+
+
+class RenderReservationConfirmationOut(BaseModel):
+    text: str

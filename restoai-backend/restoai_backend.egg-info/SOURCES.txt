@@ -24,6 +24,7 @@ app/domain/errors.py
 app/domain/language.py
 app/domain/menu.py
 app/domain/order.py
+app/domain/reservation.py
 app/domain/tools.py
 app/infra/__init__.py
 app/infra/cost_log.py
@@ -34,6 +35,7 @@ app/infra/intent_classifier.py
 app/infra/logging.py
 app/infra/redaction.py
 app/infra/redis_client.py
+app/infra/reservation_draft_store.py
 app/infra/settings.py
 app/infra/telegram_client.py
 app/prompts/__init__.py
@@ -44,6 +46,7 @@ app/repositories/__init__.py
 app/repositories/customer_repo.py
 app/repositories/menu_repo.py
 app/repositories/order_repo.py
+app/repositories/reservation_repo.py
 app/repositories/transcript_repo.py
 app/repositories/zone_repo.py
 app/services/__init__.py
