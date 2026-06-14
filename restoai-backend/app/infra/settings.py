@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     TELEGRAM_WEBHOOK_SECRET: str = ""
     TELEGRAM_WEBHOOK_SECRET_PATH: str = ""
 
+    # ── Optional proxy for Telegram API (SOCKS5 or HTTP) ─────────────────────
+    # Example: socks5://user:pass@host:port  or  http://host:port
+    TELEGRAM_PROXY_URL: str = ""
+
     # ── Logging ───────────────────────────────────────────────────────────────
     LOG_LEVEL: str = "INFO"
 

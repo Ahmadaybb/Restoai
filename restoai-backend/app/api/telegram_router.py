@@ -47,7 +47,7 @@ async def _dispatch_update(app: object, update_data: dict[str, Any]) -> None:
         await _process_update(app, session, update_data)
         await session.commit()
     except Exception as exc:
-        logger.error("telegram_dispatch_error", extra={"error": redact(str(exc))})
+        logger.exception("telegram_dispatch_error", extra={"error": redact(str(exc))})
         await session.rollback()
     finally:
         try:
@@ -320,6 +320,26 @@ async def _process_update(
                     lang, reservation_prompts.CANCEL_ABORTED[Language.EN]
                 ),
             )
+
+        elif cq_data.startswith("start_action:"):
+            # Change 3: welcome screen action buttons
+            action = cq_data.split(":", 1)[1]
+            if action == "order":
+                from app.services.conversation_service import _ORDER_PROMPT_EN
+                await telegram.send_message(chat_id=chat_id, text=_ORDER_PROMPT_EN)
+            elif action == "reserve":
+                # Start the reservation flow at date — collect in order:
+                # date → time → party size → name → phone → seating
+                await reservation_draft_service.start_draft(customer.id, Language.EN)
+                await draft_store.put_chat_state(
+                    customer.id, {"waiting_for": "reservation_date"}
+                )
+                await telegram.send_message(
+                    chat_id=chat_id,
+                    text=reservation_prompts.DATE.get(
+                        Language.EN, reservation_prompts.DATE[Language.EN]
+                    ),
+                )
 
         elif cq_data.startswith("res_date_confirm:"):
             # res_date_confirm:{customer_id}:{iso_date}

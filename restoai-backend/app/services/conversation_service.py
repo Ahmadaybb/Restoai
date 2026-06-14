@@ -88,14 +88,24 @@ _DEGRADATION = {
     ),
 }
 
-_WELCOME_EN = (
-    "👋 Welcome to Lakkis Farm! I'm your order assistant.\n\n"
+_WELCOME_EN = "👋 Welcome to Lakkis Farm! How can I help you today?"
+_WELCOME_AR = "👋 أهلاً بك في لاكيس فارم! كيف يمكنني مساعدتك اليوم؟"
+
+_START_BUTTONS_EN: list[dict[str, str]] = [
+    {"label": "🍽️ Order Food", "callback_data": "start_action:order"},
+    {"label": "📅 Reserve a Table", "callback_data": "start_action:reserve"},
+]
+_START_BUTTONS_AR: list[dict[str, str]] = [
+    {"label": "🍽️ اطلب طعاماً", "callback_data": "start_action:order"},
+    {"label": "📅 احجز طاولة", "callback_data": "start_action:reserve"},
+]
+
+_ORDER_PROMPT_EN = (
     "🍽️ View our full menu here:\n"
     "https://menu.omegasoftware.ca/mlmksal\n\n"
     "Just tell me what you'd like to order!"
 )
-_WELCOME_AR = (
-    "👋 أهلاً بك في لاكيس فارم! أنا مساعدك للطلبات.\n\n"
+_ORDER_PROMPT_AR = (
     "🍽️ شاهد قائمة طعامنا الكاملة هنا:\n"
     "https://menu.omegasoftware.ca/mlmksal\n\n"
     "فقط أخبرني بما تريد طلبه!"
@@ -119,16 +129,18 @@ async def on_start(
     telegram_chat_id: int,
     messenger: MessengerClient,
 ) -> None:
-    """FR-001, FR-002: Send welcome + full menu on /start. Clears any active draft."""
+    """FR-001, FR-002: Send welcome + action buttons on /start. Clears any active draft."""
     try:
         await draft_store.delete_draft(customer.id)
     except RuntimeError:
         pass  # Redis not initialised (e.g. in unit tests)
+
     text = _WELCOME_EN
+    buttons = _START_BUTTONS_EN
     if customer.display_name:
         text = f"Welcome back, {customer.display_name}! 😊\n" + text
 
-    await messenger.send_message(chat_id=telegram_chat_id, text=text)
+    await messenger.send_message(chat_id=telegram_chat_id, text=text, buttons=buttons)
 
     conv = await transcript_repo.get_or_create_conversation(session, customer.id)
     turn = Turn(
@@ -180,7 +192,15 @@ async def handle_text(
     buttons: list[dict[str, str]] | None = None
 
     try:
-        if intent_result in (Intent.ORDER, Intent.UNKNOWN):
+        # Bug 2 fix: if an active reservation state machine is mid-flow, route
+        # directly to it — don't let intent misclassification derail the turn.
+        active_chat_state = await draft_store.get_chat_state(customer.id) or {}
+        active_waiting_for: str = active_chat_state.get("waiting_for", "")
+        if active_waiting_for.startswith("reservation_"):
+            reply_text, buttons = await _handle_reservation_intent(
+                session, customer, text, reply_lang, llm, conv.id
+            )
+        elif intent_result in (Intent.ORDER, Intent.UNKNOWN):
             reply_text, buttons = await _handle_order_intent(
                 session, customer, text, reply_lang, llm, conv.id
             )
@@ -199,6 +219,9 @@ async def handle_text(
             "external_dependency_error",
             extra={"dependency": exc.dependency, "error_detail": redact(str(exc))},
         )
+        reply_text = _DEGRADATION.get(reply_lang, _DEGRADATION[Language.EN])
+    except Exception:
+        logger.exception("handle_text_unexpected_error")
         reply_text = _DEGRADATION.get(reply_lang, _DEGRADATION[Language.EN])
 
     # 4. Send reply

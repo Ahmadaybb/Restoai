@@ -27,11 +27,13 @@ class TelegramClient:
         webhook_url: str = "",
         webhook_secret: str = "",
         webhook_secret_path: str = "",
+        proxy_url: str = "",
     ) -> None:
         self._bot_token = bot_token
         self._webhook_url = webhook_url
         self._webhook_secret = webhook_secret
         self._webhook_secret_path = webhook_secret_path
+        self._proxy_url = proxy_url
         self._app: Application | None = None  # type: ignore[type-arg]
 
     @property
@@ -51,14 +53,15 @@ class TelegramClient:
         """Start long-polling loop in the background (dev mode)."""
         from telegram.ext import CallbackQueryHandler, MessageHandler, filters
 
-        self._app = ApplicationBuilder().token(self._bot_token).build()
-        self._app.add_handler(
-            MessageHandler(
-                filters.TEXT | filters.CONTACT | filters.LOCATION,
-                update_handler,
-            )
+        self._app = (
+            ApplicationBuilder().token(self._bot_token).build()
         )
-        self._app.add_handler(CallbackQueryHandler(update_handler))
+        self._app.add_handler(
+            MessageHandler(filters.ALL, update_handler)
+        )
+        self._app.add_handler(
+            CallbackQueryHandler(update_handler)
+        )
         logger.info("telegram_polling_started")
         await self._app.initialize()
         await self._app.start()

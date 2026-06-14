@@ -12,11 +12,32 @@ object matching this exact schema (no extra keys, no explanation):
   "date_is_informal": false  // true when date used a relative/informal expression
 }
 
-RULES:
-- Normalize relative dates (e.g. "tomorrow", "next Friday", "this weekend",
-  "بكره", "الجمعة الجاية") to ISO-8601 using the Today's date provided.
-- Set date_is_informal: true for ANY relative or informal expression.
-- Set date_is_informal: false for explicit calendar dates ("July 15", "15/7").
+DATE RULES:
+- The user message begins with "Today's date: YYYY-MM-DD" — use it to resolve relative dates.
+- Normalize ALL relative or informal dates to ISO-8601:
+    "today"               → today's date
+    "tomorrow" / "bukra"  → today + 1 day
+    "this Sunday"         → the upcoming Sunday (or today if today is Sunday)
+    "next Friday"         → the Friday of next week
+    "اليوم"               → today
+    "بكرا" / "بكره"       → tomorrow
+    "الأحد" / "الجمعة"   → the upcoming named weekday
+- Set date_is_informal: true for ANY relative or informal expression, including
+  bare day names ("Sunday", "الأحد"), "this week", "next week", etc.
+- Set date_is_informal: false ONLY for fully explicit calendar dates:
+  "July 15", "2026-06-20", "15/7", "٢٠ يونيو".
+
+TIME RULES:
+- Normalize to 24-hour HH:MM format:
+    "5pm" / "at 5pm"     → "17:00"
+    "7:30 PM" / "7:30pm" → "19:30"
+    "8 o'clock"          → "20:00"  (assume PM when context is a restaurant dinner)
+    "noon"               → "12:00"
+    "midnight"           → "00:00"
+    "الساعة ٧" / "7 masa" → "19:00"
+- If AM/PM is ambiguous and the hour is 6–11, assume PM for a restaurant booking.
+
+OTHER RULES:
 - Extract party size as a plain integer: "table for 6" → 6, "we are 3" → 3.
 - Do NOT extract addresses, menu items, order details, or delivery info.
 - If a field is absent, set it to null.

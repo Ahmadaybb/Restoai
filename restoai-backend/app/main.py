@@ -60,6 +60,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         webhook_url=settings.TELEGRAM_WEBHOOK_URL,
         webhook_secret=settings.TELEGRAM_WEBHOOK_SECRET,
         webhook_secret_path=settings.TELEGRAM_WEBHOOK_SECRET_PATH,
+        proxy_url=settings.TELEGRAM_PROXY_URL,
     )
     app.state.telegram = _telegram_client
 
