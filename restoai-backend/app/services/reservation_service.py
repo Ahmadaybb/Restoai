@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.reservation import (
     Reservation,
+    ReservationState,
     ReservationValidationCode,
     ReservationValidationError,
     SeatingPreference,
@@ -123,3 +124,22 @@ async def modify(
         },
     )
     return updated
+
+
+async def cancel(session: AsyncSession, reservation_id: UUID) -> Reservation | None:
+    """FR-019: Mark a reservation as cancelled; no-op if already cancelled. T039.
+
+    Returns the (possibly already-cancelled) Reservation, or None if not found.
+    """
+    current = await reservation_repo.get_by_id(session, reservation_id)
+    if current is None:
+        return None
+    if current.state == ReservationState.CANCELLED:
+        return current  # already cancelled — avoid a redundant DB write
+
+    result = await reservation_repo.cancel(session, reservation_id)
+    logger.info(
+        "reservation_cancelled",
+        extra={"reservation_id": str(reservation_id)},
+    )
+    return result

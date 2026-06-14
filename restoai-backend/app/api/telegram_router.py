@@ -29,6 +29,7 @@ from app.services import (
     order_service,
     reservation_draft_service,
     reservation_prompts,
+    reservation_service,
 )
 
 logger = logging.getLogger(__name__)
@@ -276,7 +277,7 @@ async def _process_update(
             )
 
         elif cq_data.startswith("res_select:"):
-            # T036: dispatch based on which action was pending
+            # T036/T041: dispatch based on which action was pending
             reservation_id = UUID(cq_data.split(":", 1)[1])
             cq_chat_state = await draft_store.get_chat_state(customer.id) or {}
             cq_waiting_for = cq_chat_state.get("waiting_for", "")
@@ -284,7 +285,41 @@ async def _process_update(
                 await conversation_service.begin_modification(
                     session, customer, reservation_id, chat_id, telegram, llm
                 )
-            # reservation_select_for_cancel handled in Phase 6 (T041)
+            elif cq_waiting_for == "reservation_select_for_cancel":
+                await conversation_service.begin_cancellation(
+                    session, customer, reservation_id, chat_id, telegram
+                )
+
+        elif cq_data.startswith("res_cancel_confirm:"):
+            # T041: customer confirmed cancellation
+            reservation_id = UUID(cq_data.split(":", 1)[1])
+            res = await reservation_service.cancel(session, reservation_id)
+            if res is not None:
+                tmpl = reservation_prompts.CANCEL_CONFIRMED_TMPL.get(
+                    res.language,
+                    reservation_prompts.CANCEL_CONFIRMED_TMPL[Language.EN],
+                )
+                await telegram.send_message(
+                    chat_id=chat_id,
+                    text=tmpl.format(reference=res.reference),
+                )
+            else:
+                await telegram.send_message(
+                    chat_id=chat_id,
+                    text="Sorry, that reservation could not be found.",
+                )
+
+        elif cq_data.startswith("res_cancel_abort:"):
+            # T041: customer chose to keep the reservation
+            reservation_id = UUID(cq_data.split(":", 1)[1])
+            res = await reservation_service.get_by_id(session, reservation_id)
+            lang = res.language if res is not None else Language.EN
+            await telegram.send_message(
+                chat_id=chat_id,
+                text=reservation_prompts.CANCEL_ABORTED.get(
+                    lang, reservation_prompts.CANCEL_ABORTED[Language.EN]
+                ),
+            )
 
         elif cq_data.startswith("res_date_confirm:"):
             # res_date_confirm:{customer_id}:{iso_date}

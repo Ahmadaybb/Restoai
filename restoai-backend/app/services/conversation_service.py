@@ -66,6 +66,12 @@ _MODIFICATION_KEYWORDS = frozenset({
     "badal", "ghayyer", "t3adel",
 })
 
+_CANCELLATION_KEYWORDS = frozenset({
+    "cancel", "cancellation", "drop reservation", "delete reservation",
+    "إلغاء", "إلغِ", "الغي", "الغ حجز",
+    "ilghi", "ilghaa", "3am bilghi",
+})
+
 # Degradation messages per language
 _DEGRADATION = {
     Language.EN: (
@@ -519,6 +525,22 @@ async def _handle_reservation_intent(
                 buttons = _build_reservation_select_buttons(reservations)
                 return _res_prompt(reservation_prompts.SELECT_RESERVATION_MODIFY, lang), buttons
 
+        # T040: detect cancellation intent before starting a new reservation
+        if _looks_like_cancellation(text):
+            reservations = await reservation_service.find_active_by_customer(session, customer.id)
+            if not reservations:
+                return _res_prompt(reservation_prompts.NO_ACTIVE_RESERVATION, lang), None
+            if len(reservations) == 1:
+                res = reservations[0]
+                buttons = _build_cancel_confirm_buttons(res.id)
+                return _res_prompt(reservation_prompts.CANCEL_CONFIRM_PROMPT, lang), buttons
+            # Multiple reservations → let the customer choose which to cancel
+            await draft_store.put_chat_state(
+                customer.id, {"waiting_for": "reservation_select_for_cancel"}
+            )
+            buttons = _build_reservation_select_buttons(reservations)
+            return _res_prompt(reservation_prompts.SELECT_RESERVATION_CANCEL, lang), buttons
+
         draft = await reservation_draft_service.get_draft(customer.id)
         if draft is None:
             draft = await reservation_draft_service.start_draft(customer.id, lang)
@@ -636,9 +658,11 @@ async def _handle_reservation_intent(
     if waiting_for == "reservation_modify_pending":
         res_id_str: str = chat_state.get("modification_reservation_id", "")
         if res_id_str:
-            res = await reservation_service.get_by_id(session, UUID(res_id_str))
-            if res is not None:
-                return await _handle_modification_intent(session, customer, text, lang, llm, res)
+            pending_res = await reservation_service.get_by_id(session, UUID(res_id_str))
+            if pending_res is not None:
+                return await _handle_modification_intent(
+                    session, customer, text, lang, llm, pending_res
+                )
         await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
         return _res_prompt(reservation_prompts.DATE, lang), None
 
@@ -649,6 +673,14 @@ async def _handle_reservation_intent(
             return _res_prompt(reservation_prompts.NO_ACTIVE_RESERVATION, lang), None
         buttons = _build_reservation_select_buttons(reservations)
         return _res_prompt(reservation_prompts.SELECT_RESERVATION_MODIFY, lang), buttons
+
+    # ── Cancellation: re-send selection buttons when user types (T040) ────────
+    if waiting_for == "reservation_select_for_cancel":
+        reservations = await reservation_service.find_active_by_customer(session, customer.id)
+        if not reservations:
+            return _res_prompt(reservation_prompts.NO_ACTIVE_RESERVATION, lang), None
+        buttons = _build_reservation_select_buttons(reservations)
+        return _res_prompt(reservation_prompts.SELECT_RESERVATION_CANCEL, lang), buttons
 
     # ── Unknown state — restart ───────────────────────────────────────────────
     await reservation_draft_service.start_draft(customer.id, lang)
@@ -663,6 +695,20 @@ def _looks_like_modification(text: str) -> bool:
     """Quick keyword scan to route modification intents before an LLM call. T037."""
     lower = text.lower()
     return any(kw in lower for kw in _MODIFICATION_KEYWORDS)
+
+
+def _looks_like_cancellation(text: str) -> bool:
+    """Quick keyword scan to route cancellation intents before an LLM call. T040."""
+    lower = text.lower()
+    return any(kw in lower for kw in _CANCELLATION_KEYWORDS)
+
+
+def _build_cancel_confirm_buttons(reservation_id: UUID) -> list[dict[str, str]]:
+    """Build yes/no confirmation buttons for a cancellation request. T040, FR-017."""
+    return [
+        {"label": "❌ Yes, cancel it", "callback_data": f"res_cancel_confirm:{reservation_id}"},
+        {"label": "↩️ No, keep it", "callback_data": f"res_cancel_abort:{reservation_id}"},
+    ]
 
 
 def _build_reservation_select_buttons(
@@ -822,3 +868,28 @@ async def continue_modification_flow(
     )
     await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
     await messenger.send_message(chat_id=chat_id, text=conf_out.text)
+
+
+async def begin_cancellation(
+    session: AsyncSession,
+    customer: Customer,
+    reservation_id: UUID,
+    chat_id: int,
+    messenger: MessengerClient,
+) -> None:
+    """Public. Called from router after res_select: in cancel context. T041, FR-017."""
+    res = await reservation_service.get_by_id(session, reservation_id)
+    if res is None:
+        await messenger.send_message(
+            chat_id=chat_id,
+            text="Sorry, that reservation could not be found.",
+        )
+        return
+    lang = res.language
+    buttons = _build_cancel_confirm_buttons(reservation_id)
+    await messenger.send_message(
+        chat_id=chat_id,
+        text=_res_prompt(reservation_prompts.CANCEL_CONFIRM_PROMPT, lang),
+        buttons=buttons,
+    )
+    await draft_store.put_chat_state(customer.id, {"waiting_for": ""})

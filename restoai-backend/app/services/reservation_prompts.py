@@ -157,3 +157,29 @@ def _build_call_center_redirect() -> dict[Language, str]:
 
 
 CALL_CENTER_REDIRECT = _build_call_center_redirect()
+
+# ── Cancellation strings (FR-017, FR-018, FR-019) ────────────────────────────
+
+SELECT_RESERVATION_CANCEL = {
+    Language.EN: "Which reservation would you like to cancel?",
+    Language.AR_LB: "أي حجز بدك تلغي؟",
+    Language.ARABIZI: "Ayye 7ajez badak tilghi?",
+}
+
+CANCEL_CONFIRM_PROMPT = {
+    Language.EN: "Are you sure you want to cancel this reservation?",
+    Language.AR_LB: "متأكد إنك بدك تلغي هالحجز؟",
+    Language.ARABIZI: "Mta2akked innak badak tilghi hal-7ajez?",
+}
+
+CANCEL_CONFIRMED_TMPL = {
+    Language.EN: "✅ Your reservation {reference} has been cancelled.",
+    Language.AR_LB: "✅ تم إلغاء حجزك {reference}.",
+    Language.ARABIZI: "✅ Tm ilghaa 7ajzak {reference}.",
+}
+
+CANCEL_ABORTED = {
+    Language.EN: "No problem! Your reservation is still active. 🙌",
+    Language.AR_LB: "تمام! حجزك لا يزال نشطاً. 🙌",
+    Language.ARABIZI: "Tamem! 7ajzak la yezal nashte. 🙌",
+}

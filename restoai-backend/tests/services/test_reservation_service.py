@@ -293,3 +293,61 @@ async def test_modify_seating_from_terrace_to_indoor_succeeds(
 
     assert result.seating_preference == SeatingPreference.INDOOR_NON_SMOKING
     assert result.reference == "RES-ABCDEF1"
+
+
+# ── T042: ReservationService.cancel ──────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_cancel_sets_state_cancelled(monkeypatch: pytest.MonkeyPatch) -> None:
+    """(a) cancel() returns a reservation with state=CANCELLED and cancels via repo. T042."""
+    from app.services import reservation_service
+
+    res = _make_reservation()
+    assert res.state == ReservationState.ACTIVE
+
+    cancelled = res.model_copy(update={"state": ReservationState.CANCELLED})
+
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.get_by_id",
+        AsyncMock(return_value=res),
+    )
+    cancel_mock = AsyncMock(return_value=cancelled)
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.cancel",
+        cancel_mock,
+    )
+
+    session = AsyncMock()
+    result = await reservation_service.cancel(session, res.id)
+
+    assert result is not None
+    assert result.state == ReservationState.CANCELLED
+    cancel_mock.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_cancel_already_cancelled_is_noop(monkeypatch: pytest.MonkeyPatch) -> None:
+    """(b) cancel() on an already-CANCELLED reservation does NOT call repo.cancel. T042."""
+    from app.services import reservation_service
+
+    already_cancelled = _make_reservation().model_copy(
+        update={"state": ReservationState.CANCELLED}
+    )
+
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.get_by_id",
+        AsyncMock(return_value=already_cancelled),
+    )
+    cancel_mock = AsyncMock()
+    monkeypatch.setattr(
+        "app.services.reservation_service.reservation_repo.cancel",
+        cancel_mock,
+    )
+
+    session = AsyncMock()
+    result = await reservation_service.cancel(session, already_cancelled.id)
+
+    assert result is not None
+    assert result.state == ReservationState.CANCELLED
+    cancel_mock.assert_not_awaited()  # no-op: repo.cancel must NOT be called

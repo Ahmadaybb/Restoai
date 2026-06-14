@@ -161,15 +161,15 @@ confirmation gate. Cancellation is acknowledged with the reference number.
 
 **Independent Test**: Per `quickstart.md §US5 — Cancellation`.
 
-- [ ] T039 [US4] Implement `ReservationService.cancel` in `app/services/reservation_service.py`: set `state = "cancelled"`, set `cancelled_at = now()`, call `reservation_repo.cancel(session, reservation_id)`. FR-019. Per data-model.md §ReservationState.
+- [X] T039 [US4] Implement `ReservationService.cancel` in `app/services/reservation_service.py`: set `state = "cancelled"`, set `cancelled_at = now()`, call `reservation_repo.cancel(session, reservation_id)`. FR-019. Per data-model.md §ReservationState.
 
-- [ ] T040 [US4] Cancellation intent routing in `_handle_reservation_intent` in `app/services/conversation_service.py`: detect cancellation keywords ("cancel", "إلغاء"); call `reservation_repo.find_active_by_customer`; if none found, reply "no active reservation"; if one, send summary + `res_cancel_confirm:{id}` / `res_cancel_abort:{id}` inline buttons; if multiple, invoke multi-reservation button list with `waiting_for = "reservation_select_for_cancel"`. FR-017, FR-018. Per `contracts/telegram-callbacks.md §Cancellation confirmation`.
+- [X] T040 [US4] Cancellation intent routing in `_handle_reservation_intent` in `app/services/conversation_service.py`: detect cancellation keywords ("cancel", "إلغاء"); call `reservation_repo.find_active_by_customer`; if none found, reply "no active reservation"; if one, send summary + `res_cancel_confirm:{id}` / `res_cancel_abort:{id}` inline buttons; if multiple, invoke multi-reservation button list with `waiting_for = "reservation_select_for_cancel"`. FR-017, FR-018. Per `contracts/telegram-callbacks.md §Cancellation confirmation`.
 
-- [ ] T041 [US4] Add `res_cancel_confirm:` and `res_cancel_abort:` callback handlers in `app/api/telegram_router.py`: on confirm, call `ReservationService.cancel` and send localized acknowledgement with reference number; on abort, send "your reservation is still active" message. FR-017, FR-018, FR-019. Per `contracts/telegram-callbacks.md`.
+- [X] T041 [US4] Add `res_cancel_confirm:` and `res_cancel_abort:` callback handlers in `app/api/telegram_router.py`: on confirm, call `ReservationService.cancel` and send localized acknowledgement with reference number; on abort, send "your reservation is still active" message. FR-017, FR-018, FR-019. Per `contracts/telegram-callbacks.md`.
 
-- [ ] T042 [P] [US4] Unit tests in `tests/services/test_reservation_service.py` (extend): (a) `cancel` sets state to `"cancelled"` and `cancelled_at` is not None; (b) calling cancel on an already-cancelled reservation is a no-op (state stays `"cancelled"`). Principle II.
+- [X] T042 [P] [US4] Unit tests in `tests/services/test_reservation_service.py` (extend): (a) `cancel` sets state to `"cancelled"` and `cancelled_at` is not None; (b) calling cancel on an already-cancelled reservation is a no-op (state stays `"cancelled"`). Principle II.
 
-- [ ] T043 [P] [US4] Unit test: cancellation when `find_active_by_customer` returns empty list → reply text contains "no active reservation" (EN) and does NOT call `cancel`. FR-017. Principle II.
+- [X] T043 [P] [US4] Unit test: cancellation when `find_active_by_customer` returns empty list → reply text contains "no active reservation" (EN) and does NOT call `cancel`. FR-017. Principle II.
 
 **Checkpoint**: All four user stories complete — US1, US2, US3, US4 are independently functional.
 
