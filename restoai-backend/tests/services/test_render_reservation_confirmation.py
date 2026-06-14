@@ -133,3 +133,46 @@ async def test_synthesis_tier_only_mechanical_never_called() -> None:
     await render_reservation_confirmation(inp, client)
 
     assert len(client.synthesis_calls) == 1
+
+
+# ── T047: cost-log smoke test ─────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_tool_call_emits_exactly_one_cost_log(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """T047: render_reservation_confirmation triggers exactly one log_cost() call. Principle IV."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    from app.infra.groq_client import GroqClient
+
+    # Fake Groq API response
+    mock_choice = MagicMock()
+    mock_choice.message.content = "✅ Your reservation RES1234567 is confirmed!"
+    mock_response = MagicMock(
+        usage=MagicMock(prompt_tokens=60, completion_tokens=25),
+        choices=[mock_choice],
+    )
+    mock_api = AsyncMock()
+    mock_api.chat.completions.create = AsyncMock(return_value=mock_response)
+    monkeypatch.setattr("app.infra.groq_client.AsyncGroq", lambda api_key: mock_api)
+
+    log_calls: list[dict[str, object]] = []
+
+    def _capture(**kwargs: object) -> None:
+        log_calls.append(kwargs)
+
+    monkeypatch.setattr("app.infra.groq_client.log_cost", _capture)
+
+    reservation = _sample_reservation("RES1234567")
+    client = GroqClient(api_key="test-key")
+    inp = RenderReservationConfirmationIn(reservation=reservation, language=Language.EN)
+    await render_reservation_confirmation(inp, client)
+
+    assert len(log_calls) == 1, f"Expected 1 cost log call, got {len(log_calls)}"
+    record = log_calls[0]
+    assert "model" in record
+    assert "input_tokens" in record
+    assert "output_tokens" in record
+    assert "est_cost_usd" in record

@@ -135,3 +135,49 @@ async def test_mechanical_tier_only_synthesis_never_called() -> None:
 
     assert client.mechanical_call_count == 1
     assert client.synthesis_call_count == 0
+
+
+# ── T047: cost-log smoke test ─────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_tool_call_emits_exactly_one_cost_log(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """T047: extract_reservation_fields triggers exactly one log_cost() call. Principle IV."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    from app.infra.groq_client import GroqClient
+
+    # Fake Groq API response
+    payload = json.dumps({
+        "date": None, "time": None, "party_size": None,
+        "name": None, "phone": None, "date_is_informal": False,
+    })
+    mock_choice = MagicMock()
+    mock_choice.message.content = payload
+    mock_response = MagicMock(
+        usage=MagicMock(prompt_tokens=30, completion_tokens=10),
+        choices=[mock_choice],
+    )
+    mock_api = AsyncMock()
+    mock_api.chat.completions.create = AsyncMock(return_value=mock_response)
+    monkeypatch.setattr("app.infra.groq_client.AsyncGroq", lambda api_key: mock_api)
+
+    log_calls: list[dict[str, object]] = []
+
+    def _capture(**kwargs: object) -> None:
+        log_calls.append(kwargs)
+
+    monkeypatch.setattr("app.infra.groq_client.log_cost", _capture)
+
+    client = GroqClient(api_key="test-key")
+    inp = ExtractReservationFieldsIn(text="book a table", language=Language.EN)
+    await extract_reservation_fields(inp, client)
+
+    assert len(log_calls) == 1, f"Expected 1 cost log call, got {len(log_calls)}"
+    record = log_calls[0]
+    assert "model" in record
+    assert "input_tokens" in record
+    assert "output_tokens" in record
+    assert "est_cost_usd" in record

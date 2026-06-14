@@ -180,17 +180,17 @@ confirmation gate. Cancellation is acknowledged with the reference number.
 **Purpose**: Documentation, PII redaction assertions, architecture gate validation,
 and cost-log verification.
 
-- [ ] T044 [P] Append ADR-011 through ADR-014 to `DECISIONS.md` (immediate confirmation HITL deviation, Redis-only draft, SeatingPreference enum, call-center-number-as-config). Constitution Principle VI. Per plan.md §Architecture decisions to record.
+- [X] T044 [P] Append ADR-011 through ADR-014 to `DECISIONS.md` (immediate confirmation HITL deviation, Redis-only draft, SeatingPreference enum, call-center-number-as-config). Constitution Principle VI. Per plan.md §Architecture decisions to record.
 
-- [ ] T045 [P] Add PII redaction assertions to `tests/infra/test_redaction.py`: prove that `redact(name)` scrubs a sample customer name appearing in a reservation context; prove that `redact(phone)` scrubs a Lebanese E.164 phone. Constitution Principle V.
+- [X] T045 [P] Add PII redaction assertions to `tests/infra/test_redaction.py`: prove that `redact(name)` scrubs a sample customer name appearing in a reservation context; prove that `redact(phone)` scrubs a Lebanese E.164 phone. Constitution Principle V.
 
-- [ ] T046 [P] Verify architecture layering for new files: extend `tests/architecture/test_layering.py` to assert that `app/api/telegram_router.py` (reservation callbacks) imports only from `app/services` and `app/domain` — not from `app/repositories` or `app/db`. Constitution Principle I.
+- [X] T046 [P] Verify architecture layering for new files: extend `tests/architecture/test_layering.py` to assert that `app/api/telegram_router.py` (reservation callbacks) imports only from `app/services` and `app/domain` — not from `app/repositories` or `app/db`. Constitution Principle I.
 
-- [ ] T047 [P] Cost-log smoke test: in `tests/services/test_extract_reservation_fields.py` (extend) and `tests/services/test_render_reservation_confirmation.py` (extend), assert that each tool call triggers exactly one `cost_log.record(...)` call (mock `cost_log` and assert it is called with `model`, `input_tokens`, `output_tokens`, `est_cost_usd`). Constitution Principle IV.
+- [X] T047 [P] Cost-log smoke test: in `tests/services/test_extract_reservation_fields.py` (extend) and `tests/services/test_render_reservation_confirmation.py` (extend), assert that each tool call triggers exactly one `cost_log.record(...)` call (mock `cost_log` and assert it is called with `model`, `input_tokens`, `output_tokens`, `est_cost_usd`). Constitution Principle IV.
 
-- [ ] T048 Run `ruff check . && mypy app/domain app/services app/api app/infra` against all new files and fix any violations. Constitution Principle I.
+- [X] T048 Run `ruff check . && mypy app/domain app/services app/api app/infra` against all new files and fix any violations. Constitution Principle I.
 
-- [ ] T049 [P] Run the full test suite `pytest tests/ -v` and confirm all tests pass (target: 0 failures, ≤ 1 skip for live-DB RAG retrieval). Constitution Principle II.
+- [X] T049 [P] Run the full test suite `pytest tests/ -v` and confirm all tests pass (target: 0 failures, ≤ 1 skip for live-DB RAG retrieval). Constitution Principle II.
 
 - [ ] T050 Quickstart validation: bring up `docker compose up --build`, run through `quickstart.md §US1` through `§US5` manually, confirm all five scenarios pass against the running stack. Principle III — end-to-end human validation.
 
