@@ -75,6 +75,37 @@ training_data = [
     ("make a reservation for Sunday lunch", "reservation"),
     ("table for 2 this evening", "reservation"),
     ("reserve a table for next Friday", "reservation"),
+    ("I want to book a table", "reservation"),
+    ("reserve a table", "reservation"),
+    ("make a reservation", "reservation"),
+    ("book for 4 people", "reservation"),
+    ("I'd like to reserve", "reservation"),
+    ("table for tonight", "reservation"),
+    ("I want a reservation", "reservation"),
+    ("can I book a table", "reservation"),
+    ("book a table please", "reservation"),
+    ("I want to reserve a table", "reservation"),
+    ("reserve please", "reservation"),
+    ("I need to make a reservation", "reservation"),
+    ("table reservation please", "reservation"),
+
+    # RESERVATION - Arabic
+    ("أريد حجز طاولة", "reservation"),
+    ("احجز طاولة", "reservation"),
+    ("أريد أحجز", "reservation"),
+    ("حجز مطعم", "reservation"),
+    ("بدي أحجز طاولة", "reservation"),
+    ("ممكن أحجز", "reservation"),
+    ("بدي حجز", "reservation"),
+    ("أريد حجز", "reservation"),
+
+    # RESERVATION - Arabizi
+    ("baddi احجز table", "reservation"),
+    ("7ajiz tawle", "reservation"),
+    ("reserve table", "reservation"),
+    ("baddi reserve", "reservation"),
+    ("bidi 7ajez", "reservation"),
+    ("7ajez tawle min fadlak", "reservation"),
 
     # QUERY - English (menu and restaurant questions)
     ("what is in the fattoush salad", "query"),

@@ -27,7 +27,7 @@ Extract ordered items from the customer's message. Each item has:
 - customizations: list of modifications that apply to this item.
   Each customization has:
   - kind: "add" | "remove" | "cook_pref" | "extra_side" | "other"
-  - text: the FULL modification phrase including the modifier word (e.g. "without oil", "no onions", "extra spicy")
+  - text: the FULL modification phrase with modifier word (e.g. "without oil", "extra spicy")
 
 RULES:
 - "phrase" must be the dish name only — never "fatoush without oil", only "fatoush"

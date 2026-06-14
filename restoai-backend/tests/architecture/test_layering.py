@@ -77,3 +77,20 @@ def test_services_do_not_import_fastapi_request() -> None:
         "app/services must not import fastapi request objects.\n"
         + "\n".join(violations)
     )
+
+
+def test_telegram_router_does_not_import_repositories_or_db() -> None:
+    """T046: telegram_router.py (reservation callbacks) must not bypass the service layer.
+
+    Constitution Principle I: app/api → app/services → app/repositories → app/db.
+    telegram_router.py must import only from app/services and app/domain (plus
+    app/infra for draft_store/redaction), never from app/repositories or app/db.
+    """
+    router_path = APP / "api" / "telegram_router.py"
+    imports = _imports_in_file(router_path)
+    violations = [imp for imp in imports if imp.startswith(("app.db", "app.repositories"))]
+    assert not violations, (
+        "app/api/telegram_router.py must not import app/db or app/repositories.\n"
+        "Use app/services/* instead.\n"
+        + "\n".join(violations)
+    )

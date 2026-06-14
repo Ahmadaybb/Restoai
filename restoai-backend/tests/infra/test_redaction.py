@@ -58,3 +58,26 @@ def test_redact_name_returns_token() -> None:
 
 def test_redact_address_returns_token() -> None:
     assert redact_address("Hamra Street near AUB") == "[ADDRESS_REDACTED]"
+
+
+# ── T045: PII redaction in reservation context ────────────────────────────────
+
+
+def test_redact_name_in_reservation_context() -> None:
+    """redact_name() scrubs a customer name that appears in a reservation log. T045, Principle V."""
+    customer_name = "Fatima Khoury"
+    result = redact_name(customer_name)
+    assert customer_name not in result
+    assert result == "[NAME_REDACTED]"
+
+
+def test_redact_phone_e164_in_reservation_log() -> None:
+    """redact() scrubs a Lebanese E.164 phone number in a reservation log string. T045, Principle V."""
+    phone = "+96171234567"
+    log_line = f"reservation_confirmed customer_phone={phone} reference=RES-ABCDEF1"
+    result = redact(log_line)
+    assert phone not in result
+    assert "[PHONE_REDACTED]" in result
+    # Non-PII content is preserved
+    assert "reservation_confirmed" in result
+    assert "RES-ABCDEF1" in result

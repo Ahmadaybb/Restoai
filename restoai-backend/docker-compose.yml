@@ -2,6 +2,12 @@ volumes:
   pgdata:
   redisdata:
 
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+
 services:
   db:
     build:
@@ -45,6 +51,9 @@ services:
     build:
       context: .
       dockerfile: docker/api.Dockerfile
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://restoai:restoai@db:5432/restoai
@@ -63,6 +72,9 @@ services:
     build:
       context: .
       dockerfile: docker/worker.Dockerfile
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://restoai:restoai@db:5432/restoai

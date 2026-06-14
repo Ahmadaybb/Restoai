@@ -4,7 +4,7 @@ Uses mapped_column() (SQLAlchemy 2.x declarative style). The pgvector
 Vector type is used for MenuChunk embeddings (research.md R1, R2).
 """
 import uuid
-from datetime import datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any
 
@@ -12,12 +12,15 @@ from pgvector.sqlalchemy import Vector  # type: ignore[import-untyped]
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    Date,
     DateTime,
     ForeignKey,
     Integer,
     Numeric,
+    SmallInteger,
     String,
     Text,
+    Time,
     UniqueConstraint,
     func,
 )
@@ -263,3 +266,32 @@ class DeliveryZone(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     area_name: Mapped[str] = mapped_column(String(80), unique=True)
     aliases: Mapped[list[Any]] = mapped_column(JSONB, default=list)
+
+
+# ── Reservation ───────────────────────────────────────────────────────────────
+
+class Reservation(Base):
+    __tablename__ = "reservations"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    reference: Mapped[str] = mapped_column(String(12), unique=True, index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("customers.id"), index=True
+    )
+    date: Mapped[date] = mapped_column(Date, index=True)
+    time: Mapped[time] = mapped_column(Time(timezone=False))
+    party_size: Mapped[int] = mapped_column(SmallInteger)
+    name: Mapped[str] = mapped_column(String(120))
+    phone: Mapped[str] = mapped_column(String(20))
+    seating_preference: Mapped[str] = mapped_column(String(24))
+    state: Mapped[str] = mapped_column(String(16), default="active", index=True)
+    language: Mapped[str] = mapped_column(String(16))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

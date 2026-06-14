@@ -151,7 +151,7 @@ async def select_saved_address(
 
 
 async def reopen_for_edit(customer_id: UUID, draft_id: UUID) -> OrderDraft:
-    """FR-018: Clear items so the customer re-states their order; preserve fulfillment and address."""
+    """FR-018: Clear items so the customer re-states their order; preserve fulfillment/address."""
     draft = await get_draft(customer_id)
     if draft is None or draft.id != draft_id:
         draft = OrderDraft(customer_id=customer_id)

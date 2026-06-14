@@ -240,3 +240,116 @@ editing, escalation management, and dispatcher messaging. FastAPI auto-generates
 an OpenAPI schema at `/openapi.json`. No `frontend/`, `static/`, or `templates/`
 directory exists. The project structure exactly matches the "API-first"
 commitment.
+
+---
+
+## ADR-011 — Immediate reservation confirmation without HITL review
+
+**Decision**: Reservations are confirmed immediately by the bot without a
+human dispatcher review step.
+
+**Alternatives considered**: Queue confirmed reservations for a dispatcher to
+approve before the customer receives a confirmation; send a provisional
+confirmation followed by a human-approval step.
+
+**Rationale**: Table reservations at Lakkis Farm do not require capacity
+management — there is no real-time seat inventory system. The restaurant
+operates on trust: a customer who confirms a reservation is expected to show
+up. Requiring a dispatcher approval step would add latency (minutes to hours),
+complicate the UI, and provide no practical benefit given the absence of a
+seating inventory. The only automated constraints enforced are the terrace
+maximum (5 people) and the call-centre redirect (>14 people). Every other
+booking is accepted immediately. The `Reservation.state` default is `ACTIVE`
+on creation; there is no `PENDING_REVIEW` state. FR-010 documents this
+explicitly as a deviation from the HITL pattern used for orders.
+
+**Implementation evidence**: `app/services/reservation_service.py` —
+`confirm()` calls `reservation_repo.create()` and returns the confirmed
+`Reservation` in a single step with no dispatcher queue interaction.
+`app/domain/reservation.py` — `ReservationState` enum has `ACTIVE` and
+`CANCELLED` but no `PENDING` or `PENDING_REVIEW` value. The absence of a
+dispatcher review route in `app/api/` for reservations confirms the decision
+is architectural, not an oversight.
+
+---
+
+## ADR-012 — Redis-only ReservationDraft (no Postgres snapshot)
+
+**Decision**: In-flight reservation drafts are stored exclusively in Redis
+with a 2-hour TTL. No Postgres write happens until `ReservationService.confirm()`
+is called.
+
+**Alternatives considered**: Write draft snapshots to Postgres on every turn
+for durability.
+
+**Rationale**: This mirrors ADR-007 (Redis-only OrderDrafts) for the same
+reasons. The draft write-path remains single-store, eliminating Redis/Postgres
+divergence bugs. The explicit trade-off is that a Redis restart loses at most
+2 hours of in-flight reservation drafts. Conversation transcripts (every `Turn`
+row) are written to Postgres on every turn, so audit evidence is never lost.
+`ReservationDraft` is a collection artifact, not a business entity — it has no
+business meaning until it becomes a confirmed `Reservation`.
+
+**Implementation evidence**: `app/infra/draft_store.py` — all draft operations
+operate on Redis keys prefixed `draft:{customer_id}` and `chatstate:{customer_id}`
+with `DRAFT_TTL = 7200` seconds. `app/db/models.py` has no `reservation_draft`
+table. `alembic/versions/002_reservations_schema.py` adds only the
+`reservations` table — no draft table. `ReservationService.confirm()` is the
+first method that writes to Postgres via `reservation_repo.create()`.
+
+---
+
+## ADR-013 — `SeatingPreference` as a closed enum
+
+**Decision**: Seating options are modelled as a closed `SeatingPreference`
+enum with exactly four values: `indoor_smoking`, `indoor_non_smoking`,
+`outdoor_terrace`, `outdoor_non_terrace`.
+
+**Alternatives considered**: Free-text seating field validated at the service
+layer; a lookup table in Postgres; a dynamic list read from `restaurant_info.json`.
+
+**Rationale**: Lakkis Farm has a fixed, known seating topology. A closed enum
+enforces exhaustive handling at compile time (mypy will flag unhandled enum
+branches), prevents invalid values from reaching the database, and makes the
+terrace constraint check (`OUTDOOR_TERRACE` + `party_size > 5`) a simple
+equality check rather than a string comparison. If the seating topology
+changes, a new enum value plus a DB migration is the correct change surface —
+not a free-text field. The four current values cover all physically distinct
+seating areas.
+
+**Implementation evidence**: `app/domain/reservation.py` — `SeatingPreference`
+is a `str, Enum` with exactly four values. `app/db/models.py` stores it as a
+`String` column (Postgres enum columns are avoided to keep Alembic migrations
+simple). `app/services/reservation_service.py` — the TERRACE_TOO_LARGE guard
+uses `== SeatingPreference.OUTDOOR_TERRACE` not string comparison.
+`app/services/reservation_prompts.py` button callback data maps directly to
+enum string values.
+
+---
+
+## ADR-014 — Call-centre number as config, not hardcoded
+
+**Decision**: The restaurant call-centre phone number is stored in
+`data/restaurant_info.json` under `restaurant.contact.phone` and read at
+startup via `app/infra/restaurant_info.py`, not hardcoded in prompt strings.
+
+**Alternatives considered**: Hardcode "1661" in `reservation_prompts.py`;
+load from an environment variable; store in the database.
+
+**Rationale**: Hardcoding a business phone number in source code requires a
+code change and redeploy if the number ever changes — a unacceptable
+operational burden for a non-technical team. An environment variable would
+work but adds to the `.env` surface already monitored for secrets. The
+`restaurant_info.json` file is the natural home for restaurant-specific
+business data (opening hours, address, contact) and is already mounted
+read-only into the container. A config file change + container restart is
+the correct operational procedure for changing a phone number. The `@lru_cache`
+in `restaurant_info.py` ensures the file is read once per process lifetime.
+
+**Implementation evidence**: `app/infra/restaurant_info.py` — `get_call_center_phone()`
+reads `data/restaurant_info.json` with `@lru_cache(maxsize=1)` and returns
+`info["restaurant"]["contact"]["phone"]` as a string.
+`app/services/reservation_prompts.py` — `_build_call_center_redirect()`
+calls `_get_phone()` to construct the localized redirect strings dynamically;
+`CALL_CENTER_REDIRECT` is computed at module load time. No literal "1661"
+appears anywhere in the source code.

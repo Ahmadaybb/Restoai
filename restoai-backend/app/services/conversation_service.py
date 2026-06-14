@@ -7,7 +7,11 @@ T051: parse_order → match_dish two-pass pipeline (FR-003, FR-005, FR-006).
 T060: handle_text routing for US1 (order intent; query stub).
 T062: on_start welcome flow (FR-001, FR-002).
 T069: graceful degradation on ExternalDependencyError (FR-034).
+T021/T022: Intent.RESERVATION branch and _handle_reservation_intent (FR-001, FR-002).
 """
+from __future__ import annotations
+
+import datetime as _dt
 import logging
 from uuid import UUID
 
@@ -19,25 +23,54 @@ from app.domain.customer import Address, Customer
 from app.domain.errors import ExternalDependencyError
 from app.domain.language import Intent, Language
 from app.domain.order import OrderItem
+from app.domain.reservation import (
+    Reservation,
+    ReservationValidationCode,
+    ReservationValidationError,
+    SeatingPreference,
+)
 from app.domain.tools import (
     AnswerMenuQuestionIn,
+    ExtractReservationFieldsIn,
     MatchDishIn,
     ParseOrderIn,
     RenderReadbackIn,
+    RenderReservationConfirmationIn,
 )
 from app.infra import draft_store
 from app.infra.intent_classifier import classify
 from app.infra.redaction import redact
 from app.repositories import transcript_repo
-from app.services import customer_service, order_draft_service
+from app.services import (
+    customer_service,
+    order_draft_service,
+    reservation_draft_service,
+    reservation_prompts,
+    reservation_service,
+)
 from app.services.language_service import detect as lang_detect
 from app.services.language_service import reply_language
 from app.services.tools import answer_menu_question as qa_tool
+from app.services.tools import extract_reservation_fields as extract_res_tool
 from app.services.tools import match_dish as match_dish_tool
 from app.services.tools import parse_order as parse_order_tool
 from app.services.tools import render_readback as readback_tool
+from app.services.tools import render_reservation_confirmation as render_res_conf_tool
 
 logger = logging.getLogger(__name__)
+
+_MODIFICATION_KEYWORDS = frozenset({
+    "change", "modify", "update", "edit", "reschedule", "adjust", "alter",
+    "بدّل", "غيّر", "عدّل",
+    "تعديل", "تغيير",
+    "badal", "ghayyer", "t3adel",
+})
+
+_CANCELLATION_KEYWORDS = frozenset({
+    "cancel", "cancellation", "drop reservation", "delete reservation",
+    "إلغاء", "إلغِ", "الغي", "الغ حجز",
+    "ilghi", "ilghaa", "3am bilghi",
+})
 
 # Degradation messages per language
 _DEGRADATION = {
@@ -55,14 +88,24 @@ _DEGRADATION = {
     ),
 }
 
-_WELCOME_EN = (
-    "👋 Welcome to Lakkis Farm! I'm your order assistant.\n\n"
+_WELCOME_EN = "👋 Welcome to Lakkis Farm! How can I help you today?"
+_WELCOME_AR = "👋 أهلاً بك في لاكيس فارم! كيف يمكنني مساعدتك اليوم؟"
+
+_START_BUTTONS_EN: list[dict[str, str]] = [
+    {"label": "🍽️ Order Food", "callback_data": "start_action:order"},
+    {"label": "📅 Reserve a Table", "callback_data": "start_action:reserve"},
+]
+_START_BUTTONS_AR: list[dict[str, str]] = [
+    {"label": "🍽️ اطلب طعاماً", "callback_data": "start_action:order"},
+    {"label": "📅 احجز طاولة", "callback_data": "start_action:reserve"},
+]
+
+_ORDER_PROMPT_EN = (
     "🍽️ View our full menu here:\n"
     "https://menu.omegasoftware.ca/mlmksal\n\n"
     "Just tell me what you'd like to order!"
 )
-_WELCOME_AR = (
-    "👋 أهلاً بك في لاكيس فارم! أنا مساعدك للطلبات.\n\n"
+_ORDER_PROMPT_AR = (
     "🍽️ شاهد قائمة طعامنا الكاملة هنا:\n"
     "https://menu.omegasoftware.ca/mlmksal\n\n"
     "فقط أخبرني بما تريد طلبه!"
@@ -86,16 +129,18 @@ async def on_start(
     telegram_chat_id: int,
     messenger: MessengerClient,
 ) -> None:
-    """FR-001, FR-002: Send welcome + full menu on /start. Clears any active draft."""
+    """FR-001, FR-002: Send welcome + action buttons on /start. Clears any active draft."""
     try:
         await draft_store.delete_draft(customer.id)
     except RuntimeError:
         pass  # Redis not initialised (e.g. in unit tests)
+
     text = _WELCOME_EN
+    buttons = _START_BUTTONS_EN
     if customer.display_name:
         text = f"Welcome back, {customer.display_name}! 😊\n" + text
 
-    await messenger.send_message(chat_id=telegram_chat_id, text=text)
+    await messenger.send_message(chat_id=telegram_chat_id, text=text, buttons=buttons)
 
     conv = await transcript_repo.get_or_create_conversation(session, customer.id)
     turn = Turn(
@@ -147,13 +192,25 @@ async def handle_text(
     buttons: list[dict[str, str]] | None = None
 
     try:
-        if intent_result in (Intent.ORDER, Intent.UNKNOWN):
+        # Bug 2 fix: if an active reservation state machine is mid-flow, route
+        # directly to it — don't let intent misclassification derail the turn.
+        active_chat_state = await draft_store.get_chat_state(customer.id) or {}
+        active_waiting_for: str = active_chat_state.get("waiting_for", "")
+        if active_waiting_for.startswith("reservation_"):
+            reply_text, buttons = await _handle_reservation_intent(
+                session, customer, text, reply_lang, llm, conv.id
+            )
+        elif intent_result in (Intent.ORDER, Intent.UNKNOWN):
             reply_text, buttons = await _handle_order_intent(
                 session, customer, text, reply_lang, llm, conv.id
             )
         elif intent_result == Intent.QUERY:
             reply_text, buttons = await _handle_query_intent(
                 session, text, reply_lang, llm, embedder
+            )
+        elif intent_result == Intent.RESERVATION:
+            reply_text, buttons = await _handle_reservation_intent(
+                session, customer, text, reply_lang, llm, conv.id
             )
         else:
             reply_text = _DEGRADATION.get(reply_lang, _DEGRADATION[Language.EN])
@@ -162,6 +219,9 @@ async def handle_text(
             "external_dependency_error",
             extra={"dependency": exc.dependency, "error_detail": redact(str(exc))},
         )
+        reply_text = _DEGRADATION.get(reply_lang, _DEGRADATION[Language.EN])
+    except Exception:
+        logger.exception("handle_text_unexpected_error")
         reply_text = _DEGRADATION.get(reply_lang, _DEGRADATION[Language.EN])
 
     # 4. Send reply
@@ -293,3 +353,566 @@ async def _handle_order_intent(
     )
     buttons = [b.model_dump() for b in readback.buttons]
     return readback.text, buttons
+
+
+# ── Reservation collection helpers ───────────────────────────────────────────
+
+
+def _res_prompt(d: dict[Language, str], lang: Language) -> str:
+    return d.get(lang, d[Language.EN])
+
+
+def _is_arabic(lang: Language) -> bool:
+    return lang in (Language.AR_LB, Language.ARABIZI)
+
+
+def _date_confirm_prompt(
+    date: _dt.date,
+    customer_id: UUID,
+    lang: Language,
+) -> tuple[str, list[dict[str, str]]]:
+    """Return date read-back text + confirm/retry buttons. FR-009, T026."""
+    date_str = date.strftime("%d %B %Y")
+    iso_date = date.isoformat()
+    tmpl = _res_prompt(reservation_prompts.DATE_CONFIRM_TMPL, lang)
+    text = tmpl.format(date_str=date_str)
+    buttons: list[dict[str, str]] = [
+        {
+            "label": "✅ Yes, that's correct",
+            "callback_data": f"res_date_confirm:{customer_id}:{iso_date}",
+        },
+        {"label": "✏️ No, let me re-type", "callback_data": "res_date_retry"},
+    ]
+    return text, buttons
+
+
+def _code_to_waiting_for(code: ReservationValidationCode) -> str:
+    _MAP: dict[ReservationValidationCode, str] = {
+        ReservationValidationCode.MISSING_DATE: "reservation_date",
+        ReservationValidationCode.PAST_DATE: "reservation_date",
+        ReservationValidationCode.MISSING_TIME: "reservation_time",
+        ReservationValidationCode.MISSING_PARTY_SIZE: "reservation_party_size",
+        ReservationValidationCode.PARTY_TOO_LARGE: "",
+        ReservationValidationCode.MISSING_NAME: "reservation_name",
+        ReservationValidationCode.MISSING_PHONE: "reservation_phone",
+        ReservationValidationCode.MISSING_SEATING: "reservation_seating_indoor_outdoor",
+        ReservationValidationCode.TERRACE_TOO_LARGE: "reservation_seating_reask",
+    }
+    return _MAP.get(code, "")
+
+
+def _prompt_for_code(
+    code: ReservationValidationCode,
+    lang: Language,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """Return (text, buttons) appropriate for the given missing-field code."""
+    ar = _is_arabic(lang)
+    rp = reservation_prompts
+
+    if code == ReservationValidationCode.MISSING_DATE:
+        return _res_prompt(rp.DATE, lang), None
+
+    if code == ReservationValidationCode.PAST_DATE:
+        return (
+            _res_prompt(rp.DATE_PAST, lang) + "\n" + _res_prompt(rp.DATE, lang),
+            None,
+        )
+
+    if code == ReservationValidationCode.MISSING_TIME:
+        return _res_prompt(rp.TIME, lang), None
+
+    if code == ReservationValidationCode.MISSING_PARTY_SIZE:
+        return _res_prompt(rp.PARTY_SIZE, lang), None
+
+    if code == ReservationValidationCode.PARTY_TOO_LARGE:
+        return _res_prompt(rp.CALL_CENTER_REDIRECT, lang), None
+
+    if code == ReservationValidationCode.MISSING_NAME:
+        return _res_prompt(rp.NAME, lang), None
+
+    if code == ReservationValidationCode.MISSING_PHONE:
+        return _res_prompt(rp.PHONE, lang), None
+
+    if code == ReservationValidationCode.MISSING_SEATING:
+        buttons = rp.INDOOR_OUTDOOR_BUTTONS_AR if ar else rp.INDOOR_OUTDOOR_BUTTONS_EN
+        return _res_prompt(rp.INDOOR_OUTDOOR, lang), buttons
+
+    if code == ReservationValidationCode.TERRACE_TOO_LARGE:
+        buttons = rp.TERRACE_REASK_BUTTONS_AR if ar else rp.TERRACE_REASK_BUTTONS_EN
+        return _res_prompt(rp.TERRACE_BLOCK, lang), buttons
+
+    return _DEGRADATION.get(lang, _DEGRADATION[Language.EN]), None
+
+
+def _resend_seating_prompt(
+    waiting_for: str,
+    lang: Language,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """Re-send seating buttons when user types text during a button step."""
+    ar = _is_arabic(lang)
+    rp = reservation_prompts
+
+    if waiting_for == "reservation_seating_smoking":
+        return (
+            _res_prompt(rp.SMOKING, lang),
+            rp.SMOKING_BUTTONS_AR if ar else rp.SMOKING_BUTTONS_EN,
+        )
+    if waiting_for == "reservation_seating_terrace":
+        return (
+            _res_prompt(rp.TERRACE, lang),
+            rp.TERRACE_BUTTONS_AR if ar else rp.TERRACE_BUTTONS_EN,
+        )
+    if waiting_for == "reservation_seating_reask":
+        return (
+            _res_prompt(rp.TERRACE_BLOCK, lang),
+            rp.TERRACE_REASK_BUTTONS_AR if ar else rp.TERRACE_REASK_BUTTONS_EN,
+        )
+    # reservation_modify_seating or default: re-send indoor/outdoor
+    return (
+        _res_prompt(rp.INDOOR_OUTDOOR, lang),
+        rp.INDOOR_OUTDOOR_BUTTONS_AR if ar else rp.INDOOR_OUTDOOR_BUTTONS_EN,
+    )
+
+
+async def _next_step_or_confirm(
+    session: AsyncSession,
+    customer: Customer,
+    lang: Language,
+    llm: LLMClient,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """Try to confirm if all fields collected; otherwise prompt for next missing field."""
+    draft = await reservation_draft_service.get_draft(customer.id)
+    if draft is None:
+        return _res_prompt(reservation_prompts.DATE, lang), None
+
+    try:
+        draft.validate_ready_to_confirm()
+    except ReservationValidationError as ve:
+        wf = _code_to_waiting_for(ve.code)
+        await draft_store.put_chat_state(customer.id, {"waiting_for": wf})
+        return _prompt_for_code(ve.code, lang)
+
+    # All fields valid — confirm the reservation
+    confirmed = await reservation_service.confirm(session, customer.id)
+    conf_out = await render_res_conf_tool.render_reservation_confirmation(
+        RenderReservationConfirmationIn(reservation=confirmed, language=lang),
+        llm=llm,
+    )
+    await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+    return conf_out.text, None
+
+
+async def continue_reservation_flow(
+    session: AsyncSession,
+    customer: Customer,
+    chat_id: int,
+    messenger: MessengerClient,
+    llm: LLMClient,
+    lang: Language,
+) -> None:
+    """Called from telegram_router after a reservation callback (seating/date) is handled."""
+    text, buttons = await _next_step_or_confirm(session, customer, lang, llm)
+    await messenger.send_message(chat_id=chat_id, text=text, buttons=buttons)
+
+
+async def _handle_reservation_intent(
+    session: AsyncSession,
+    customer: Customer,
+    text: str,
+    lang: Language,
+    llm: LLMClient,
+    conversation_id: UUID,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """FR-001, FR-002, FR-009: Reservation field-collection state machine.
+
+    Reads waiting_for from chat_state, dispatches to sub-handlers, and either
+    prompts for the next field or confirms the reservation when all fields are set.
+    """
+    chat_state = await draft_store.get_chat_state(customer.id) or {}
+    waiting_for: str = chat_state.get("waiting_for", "")
+
+    # ── Fresh start or re-entry ───────────────────────────────────────────────
+    if not waiting_for or not waiting_for.startswith("reservation_"):
+        # T037: detect modification intent before starting a new reservation
+        if _looks_like_modification(text):
+            reservations = await reservation_service.find_active_by_customer(session, customer.id)
+            if reservations:
+                if len(reservations) == 1:
+                    return await _handle_modification_intent(
+                        session, customer, text, lang, llm, reservations[0]
+                    )
+                # T035: multiple reservations → selection buttons
+                await draft_store.put_chat_state(
+                    customer.id, {"waiting_for": "reservation_select_for_modify"}
+                )
+                buttons = _build_reservation_select_buttons(reservations)
+                return _res_prompt(reservation_prompts.SELECT_RESERVATION_MODIFY, lang), buttons
+
+        # T040: detect cancellation intent before starting a new reservation
+        if _looks_like_cancellation(text):
+            reservations = await reservation_service.find_active_by_customer(session, customer.id)
+            if not reservations:
+                return _res_prompt(reservation_prompts.NO_ACTIVE_RESERVATION, lang), None
+            if len(reservations) == 1:
+                res = reservations[0]
+                buttons = _build_cancel_confirm_buttons(res.id)
+                return _res_prompt(reservation_prompts.CANCEL_CONFIRM_PROMPT, lang), buttons
+            # Multiple reservations → let the customer choose which to cancel
+            await draft_store.put_chat_state(
+                customer.id, {"waiting_for": "reservation_select_for_cancel"}
+            )
+            buttons = _build_reservation_select_buttons(reservations)
+            return _res_prompt(reservation_prompts.SELECT_RESERVATION_CANCEL, lang), buttons
+
+        draft = await reservation_draft_service.get_draft(customer.id)
+        if draft is None:
+            draft = await reservation_draft_service.start_draft(customer.id, lang)
+
+        # Extract any fields the user supplied upfront
+        extracted = await extract_res_tool.extract_reservation_fields(
+            ExtractReservationFieldsIn(text=text, language=lang), llm
+        )
+
+        if extracted.party_size is not None:
+            try:
+                draft = await reservation_draft_service.collect_field(
+                    customer.id, "party_size", extracted.party_size
+                )
+            except ReservationValidationError as _ve:
+                await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+                return _prompt_for_code(_ve.code, lang)
+        if extracted.name is not None:
+            draft = await reservation_draft_service.collect_field(
+                customer.id, "name", extracted.name
+            )
+        if extracted.phone is not None:
+            draft = await reservation_draft_service.collect_field(
+                customer.id, "phone", extracted.phone
+            )
+        if extracted.time is not None:
+            draft = await reservation_draft_service.collect_field(
+                customer.id, "time", extracted.time
+            )
+
+        # Handle date — check for informal date (T026, FR-009)
+        if extracted.date is not None:
+            if extracted.date_is_informal:
+                await draft_store.put_chat_state(
+                    customer.id, {"waiting_for": "reservation_date_confirm"}
+                )
+                return _date_confirm_prompt(extracted.date, customer.id, lang)
+            draft = await reservation_draft_service.collect_field(
+                customer.id, "date", extracted.date
+            )
+
+        # Prefill name/phone from Customer record if still unset (FR-004)
+        await reservation_draft_service.prefill_from_customer(customer.id, customer)
+
+        return await _next_step_or_confirm(session, customer, lang, llm)
+
+    # ── Waiting for date (text input) ─────────────────────────────────────────
+    if waiting_for == "reservation_date":
+        extracted = await extract_res_tool.extract_reservation_fields(
+            ExtractReservationFieldsIn(text=text, language=lang), llm
+        )
+        if extracted.date is not None:
+            if extracted.date_is_informal:
+                await draft_store.put_chat_state(
+                    customer.id, {"waiting_for": "reservation_date_confirm"}
+                )
+                return _date_confirm_prompt(extracted.date, customer.id, lang)
+            await reservation_draft_service.collect_field(customer.id, "date", extracted.date)
+            return await _next_step_or_confirm(session, customer, lang, llm)
+        return _res_prompt(reservation_prompts.DATE, lang), None
+
+    # ── Waiting for time ──────────────────────────────────────────────────────
+    if waiting_for == "reservation_time":
+        extracted = await extract_res_tool.extract_reservation_fields(
+            ExtractReservationFieldsIn(text=text, language=lang), llm
+        )
+        if extracted.time is not None:
+            await reservation_draft_service.collect_field(customer.id, "time", extracted.time)
+            return await _next_step_or_confirm(session, customer, lang, llm)
+        return _res_prompt(reservation_prompts.TIME, lang), None
+
+    # ── Waiting for party size ────────────────────────────────────────────────
+    if waiting_for == "reservation_party_size":
+        extracted = await extract_res_tool.extract_reservation_fields(
+            ExtractReservationFieldsIn(text=text, language=lang), llm
+        )
+        if extracted.party_size is not None:
+            try:
+                await reservation_draft_service.collect_field(
+                    customer.id, "party_size", extracted.party_size
+                )
+            except ReservationValidationError as _ve:
+                await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+                return _prompt_for_code(_ve.code, lang)
+            return await _next_step_or_confirm(session, customer, lang, llm)
+        return _res_prompt(reservation_prompts.PARTY_SIZE, lang), None
+
+    # ── Waiting for name (plain text) ─────────────────────────────────────────
+    if waiting_for == "reservation_name":
+        name = text.strip()
+        if name:
+            await reservation_draft_service.collect_field(customer.id, "name", name)
+            return await _next_step_or_confirm(session, customer, lang, llm)
+        return _res_prompt(reservation_prompts.NAME, lang), None
+
+    # ── Waiting for phone (plain text) ────────────────────────────────────────
+    if waiting_for == "reservation_phone":
+        phone = text.strip()
+        if phone:
+            await reservation_draft_service.collect_field(customer.id, "phone", phone)
+            return await _next_step_or_confirm(session, customer, lang, llm)
+        return _res_prompt(reservation_prompts.PHONE, lang), None
+
+    # ── Button-driven seating steps (user typed text instead of clicking) ─────
+    if waiting_for in (
+        "reservation_seating_indoor_outdoor",
+        "reservation_seating_smoking",
+        "reservation_seating_terrace",
+        "reservation_seating_reask",
+        "reservation_modify_seating",  # T034: text fallback during modification seating
+    ):
+        return _resend_seating_prompt(waiting_for, lang)
+
+    # ── Modification: waiting for the user to state what to change (T037) ─────
+    if waiting_for == "reservation_modify_pending":
+        res_id_str: str = chat_state.get("modification_reservation_id", "")
+        if res_id_str:
+            pending_res = await reservation_service.get_by_id(session, UUID(res_id_str))
+            if pending_res is not None:
+                return await _handle_modification_intent(
+                    session, customer, text, lang, llm, pending_res
+                )
+        await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+        return _res_prompt(reservation_prompts.DATE, lang), None
+
+    # ── Modification: re-send selection buttons when user types (T035) ────────
+    if waiting_for == "reservation_select_for_modify":
+        reservations = await reservation_service.find_active_by_customer(session, customer.id)
+        if not reservations:
+            return _res_prompt(reservation_prompts.NO_ACTIVE_RESERVATION, lang), None
+        buttons = _build_reservation_select_buttons(reservations)
+        return _res_prompt(reservation_prompts.SELECT_RESERVATION_MODIFY, lang), buttons
+
+    # ── Cancellation: re-send selection buttons when user types (T040) ────────
+    if waiting_for == "reservation_select_for_cancel":
+        reservations = await reservation_service.find_active_by_customer(session, customer.id)
+        if not reservations:
+            return _res_prompt(reservation_prompts.NO_ACTIVE_RESERVATION, lang), None
+        buttons = _build_reservation_select_buttons(reservations)
+        return _res_prompt(reservation_prompts.SELECT_RESERVATION_CANCEL, lang), buttons
+
+    # ── Unknown state — restart ───────────────────────────────────────────────
+    await reservation_draft_service.start_draft(customer.id, lang)
+    await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+    return _res_prompt(reservation_prompts.DATE, lang), None
+
+
+# ── Modification helpers ──────────────────────────────────────────────────────
+
+
+def _looks_like_modification(text: str) -> bool:
+    """Quick keyword scan to route modification intents before an LLM call. T037."""
+    lower = text.lower()
+    return any(kw in lower for kw in _MODIFICATION_KEYWORDS)
+
+
+def _looks_like_cancellation(text: str) -> bool:
+    """Quick keyword scan to route cancellation intents before an LLM call. T040."""
+    lower = text.lower()
+    return any(kw in lower for kw in _CANCELLATION_KEYWORDS)
+
+
+def _build_cancel_confirm_buttons(reservation_id: UUID) -> list[dict[str, str]]:
+    """Build yes/no confirmation buttons for a cancellation request. T040, FR-017."""
+    return [
+        {"label": "❌ Yes, cancel it", "callback_data": f"res_cancel_confirm:{reservation_id}"},
+        {"label": "↩️ No, keep it", "callback_data": f"res_cancel_abort:{reservation_id}"},
+    ]
+
+
+def _build_reservation_select_buttons(
+    reservations: list[Reservation],
+) -> list[dict[str, str]]:
+    """Build res_select:{id} buttons labelled '{ref} — {day} {date} {time}'. T035, R9."""
+    buttons = []
+    for res in reservations:
+        day = res.date.strftime("%a")
+        date_str = res.date.strftime("%d %b")
+        time_str = res.time.strftime("%I:%M %p").lstrip("0")
+        label = f"{res.reference} — {day} {date_str} {time_str}"
+        buttons.append({"label": label, "callback_data": f"res_select:{res.id}"})
+    return buttons
+
+
+async def _handle_modification_intent(
+    session: AsyncSession,
+    customer: Customer,
+    text: str,
+    lang: Language,
+    llm: LLMClient,
+    reservation: Reservation,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """FR-013, FR-014, FR-015, FR-016: State machine for modifying an existing reservation.
+
+    Called from _handle_reservation_intent (T037) and from the router after res_select: (T036).
+    """
+    # If text is empty (arriving from a callback), ask what to change
+    if not text.strip():
+        await draft_store.put_chat_state(
+            customer.id,
+            {
+                "waiting_for": "reservation_modify_pending",
+                "modification_reservation_id": str(reservation.id),
+            },
+        )
+        return _res_prompt(reservation_prompts.MODIFY_WHICH_FIELD, lang), None
+
+    # Extract the fields the user wants to change
+    extracted = await extract_res_tool.extract_reservation_fields(
+        ExtractReservationFieldsIn(text=text, language=lang), llm
+    )
+
+    fields: dict[str, object] = {}
+    if extracted.date is not None:
+        fields["date"] = extracted.date
+    if extracted.time is not None:
+        fields["time"] = extracted.time
+    if extracted.party_size is not None:
+        try:
+            await reservation_draft_service.collect_field(
+                customer.id, "party_size", extracted.party_size
+            )
+        except ReservationValidationError:
+            # Reuse the same redirect guard as initial booking (PARTY_TOO_LARGE)
+            await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+            return _prompt_for_code(ReservationValidationCode.PARTY_TOO_LARGE, lang)
+        fields["party_size"] = extracted.party_size
+
+    if not fields:
+        await draft_store.put_chat_state(
+            customer.id,
+            {
+                "waiting_for": "reservation_modify_pending",
+                "modification_reservation_id": str(reservation.id),
+            },
+        )
+        return _res_prompt(reservation_prompts.MODIFICATION_NOTHING_EXTRACTED, lang), None
+
+    try:
+        updated = await reservation_service.modify(
+            session, customer.id, reservation.id, fields
+        )
+    except ReservationValidationError as ve:
+        if ve.code == ReservationValidationCode.TERRACE_TOO_LARGE:
+            ar = _is_arabic(lang)
+            rp = reservation_prompts
+            await draft_store.put_chat_state(
+                customer.id,
+                {
+                    "waiting_for": "reservation_modify_seating",
+                    "modification_reservation_id": str(reservation.id),
+                },
+            )
+            return (
+                _res_prompt(rp.TERRACE_BLOCK, lang),
+                rp.TERRACE_REASK_BUTTONS_AR if ar else rp.TERRACE_REASK_BUTTONS_EN,
+            )
+        return _prompt_for_code(ve.code, lang)
+
+    conf_out = await render_res_conf_tool.render_reservation_confirmation(
+        RenderReservationConfirmationIn(
+            reservation=updated, language=lang, is_modification=True
+        ),
+        llm=llm,
+    )
+    await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+    return conf_out.text, None
+
+
+async def begin_modification(
+    session: AsyncSession,
+    customer: Customer,
+    reservation_id: UUID,
+    chat_id: int,
+    messenger: MessengerClient,
+    llm: LLMClient,
+) -> None:
+    """Public. Called from router after res_select: in modify context. T036."""
+    res = await reservation_service.get_by_id(session, reservation_id)
+    if res is None:
+        await messenger.send_message(
+            chat_id=chat_id,
+            text="Sorry, that reservation could not be found.",
+        )
+        return
+    text, buttons = await _handle_modification_intent(
+        session, customer, "", res.language, llm, res
+    )
+    await messenger.send_message(chat_id=chat_id, text=text, buttons=buttons)
+
+
+async def continue_modification_flow(
+    session: AsyncSession,
+    customer: Customer,
+    reservation_id: UUID,
+    seating_preference: SeatingPreference,
+    chat_id: int,
+    messenger: MessengerClient,
+    llm: LLMClient,
+    lang: Language,
+) -> None:
+    """Public. Called from router when user clicks a seating button during modification. T034."""
+    try:
+        updated = await reservation_service.modify(
+            session, customer.id, reservation_id, {"seating_preference": seating_preference}
+        )
+    except ReservationValidationError as ve:
+        if ve.code == ReservationValidationCode.TERRACE_TOO_LARGE:
+            await draft_store.put_chat_state(
+                customer.id,
+                {
+                    "waiting_for": "reservation_modify_seating",
+                    "modification_reservation_id": str(reservation_id),
+                },
+            )
+        text, buttons = _prompt_for_code(ve.code, lang)
+        await messenger.send_message(chat_id=chat_id, text=text, buttons=buttons)
+        return
+
+    conf_out = await render_res_conf_tool.render_reservation_confirmation(
+        RenderReservationConfirmationIn(
+            reservation=updated, language=lang, is_modification=True
+        ),
+        llm=llm,
+    )
+    await draft_store.put_chat_state(customer.id, {"waiting_for": ""})
+    await messenger.send_message(chat_id=chat_id, text=conf_out.text)
+
+
+async def begin_cancellation(
+    session: AsyncSession,
+    customer: Customer,
+    reservation_id: UUID,
+    chat_id: int,
+    messenger: MessengerClient,
+) -> None:
+    """Public. Called from router after res_select: in cancel context. T041, FR-017."""
+    res = await reservation_service.get_by_id(session, reservation_id)
+    if res is None:
+        await messenger.send_message(
+            chat_id=chat_id,
+            text="Sorry, that reservation could not be found.",
+        )
+        return
+    lang = res.language
+    buttons = _build_cancel_confirm_buttons(reservation_id)
+    await messenger.send_message(
+        chat_id=chat_id,
+        text=_res_prompt(reservation_prompts.CANCEL_CONFIRM_PROMPT, lang),
+        buttons=buttons,
+    )
+    await draft_store.put_chat_state(customer.id, {"waiting_for": ""})

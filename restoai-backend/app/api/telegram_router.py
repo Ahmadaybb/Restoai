@@ -1,11 +1,15 @@
 """Telegram inbound router — webhook + polling integration.
 
 Handles: /start, text messages, contact shares, location shares,
-confirm/edit/fulfillment/saved_address callback queries.
+confirm/edit/fulfillment/saved_address callback queries, and
+reservation callbacks (res_seating:*, res_date_confirm:*, res_date_retry).
 
 contracts/telegram_webhook.md; FR-001, FR-009, FR-010, FR-013,
 FR-014, FR-016, FR-018.
 """
+from __future__ import annotations
+
+import datetime as _dt
 import logging
 from typing import Any
 from uuid import UUID
@@ -14,12 +18,18 @@ from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.errors import ExternalDependencyError, OrderValidationCode, OrderValidationError
+from app.domain.language import Language
+from app.domain.reservation import SeatingPreference
+from app.infra import draft_store
 from app.infra.redaction import redact
 from app.services import (
     conversation_service,
     customer_service,
     order_draft_service,
     order_service,
+    reservation_draft_service,
+    reservation_prompts,
+    reservation_service,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,7 +47,7 @@ async def _dispatch_update(app: object, update_data: dict[str, Any]) -> None:
         await _process_update(app, session, update_data)
         await session.commit()
     except Exception as exc:
-        logger.error("telegram_dispatch_error", extra={"error": redact(str(exc))})
+        logger.exception("telegram_dispatch_error", extra={"error": redact(str(exc))})
         await session.rollback()
     finally:
         try:
@@ -261,12 +271,191 @@ async def _process_update(
                     text="Address not found. Please enter a new address.",
                 )
 
+        elif cq_data.startswith("res_seating:"):
+            await _handle_res_seating_callback(
+                cq_data, customer, chat_id, telegram, session, llm
+            )
+
+        elif cq_data.startswith("res_select:"):
+            # T036/T041: dispatch based on which action was pending
+            reservation_id = UUID(cq_data.split(":", 1)[1])
+            cq_chat_state = await draft_store.get_chat_state(customer.id) or {}
+            cq_waiting_for = cq_chat_state.get("waiting_for", "")
+            if cq_waiting_for == "reservation_select_for_modify" and llm is not None:
+                await conversation_service.begin_modification(
+                    session, customer, reservation_id, chat_id, telegram, llm
+                )
+            elif cq_waiting_for == "reservation_select_for_cancel":
+                await conversation_service.begin_cancellation(
+                    session, customer, reservation_id, chat_id, telegram
+                )
+
+        elif cq_data.startswith("res_cancel_confirm:"):
+            # T041: customer confirmed cancellation
+            reservation_id = UUID(cq_data.split(":", 1)[1])
+            res = await reservation_service.cancel(session, reservation_id)
+            if res is not None:
+                tmpl = reservation_prompts.CANCEL_CONFIRMED_TMPL.get(
+                    res.language,
+                    reservation_prompts.CANCEL_CONFIRMED_TMPL[Language.EN],
+                )
+                await telegram.send_message(
+                    chat_id=chat_id,
+                    text=tmpl.format(reference=res.reference),
+                )
+            else:
+                await telegram.send_message(
+                    chat_id=chat_id,
+                    text="Sorry, that reservation could not be found.",
+                )
+
+        elif cq_data.startswith("res_cancel_abort:"):
+            # T041: customer chose to keep the reservation
+            reservation_id = UUID(cq_data.split(":", 1)[1])
+            res = await reservation_service.get_by_id(session, reservation_id)
+            lang = res.language if res is not None else Language.EN
+            await telegram.send_message(
+                chat_id=chat_id,
+                text=reservation_prompts.CANCEL_ABORTED.get(
+                    lang, reservation_prompts.CANCEL_ABORTED[Language.EN]
+                ),
+            )
+
+        elif cq_data.startswith("start_action:"):
+            # Change 3: welcome screen action buttons
+            action = cq_data.split(":", 1)[1]
+            if action == "order":
+                from app.services.conversation_service import _ORDER_PROMPT_EN
+                await telegram.send_message(chat_id=chat_id, text=_ORDER_PROMPT_EN)
+            elif action == "reserve":
+                # Start the reservation flow at date — collect in order:
+                # date → time → party size → name → phone → seating
+                await reservation_draft_service.start_draft(customer.id, Language.EN)
+                await draft_store.put_chat_state(
+                    customer.id, {"waiting_for": "reservation_date"}
+                )
+                await telegram.send_message(
+                    chat_id=chat_id,
+                    text=reservation_prompts.DATE.get(
+                        Language.EN, reservation_prompts.DATE[Language.EN]
+                    ),
+                )
+
+        elif cq_data.startswith("res_date_confirm:"):
+            # res_date_confirm:{customer_id}:{iso_date}
+            parts = cq_data.split(":", 2)
+            if len(parts) == 3 and llm is not None:
+                iso_date = parts[2]
+                date = _dt.date.fromisoformat(iso_date)
+                res_draft = await reservation_draft_service.get_draft(customer.id)
+                lang = res_draft.language if res_draft else Language.EN
+                await reservation_draft_service.collect_field(customer.id, "date", date)
+                await conversation_service.continue_reservation_flow(
+                    session, customer, chat_id, telegram, llm, lang
+                )
+
+        elif cq_data == "res_date_retry":
+            res_draft = await reservation_draft_service.get_draft(customer.id)
+            lang = res_draft.language if res_draft else Language.EN
+            await draft_store.put_chat_state(customer.id, {"waiting_for": "reservation_date"})
+            await telegram.send_message(
+                chat_id=chat_id,
+                text=reservation_prompts.DATE.get(lang, reservation_prompts.DATE[Language.EN]),
+            )
+
         elif cq_data == "new_address":
             # T087: customer chose to enter a fresh address (FR-015)
             await telegram.send_message(
                 chat_id=chat_id,
                 text="📍 Please share your delivery address.",
             )
+
+
+async def _handle_res_seating_callback(
+    cq_data: str,
+    customer: Any,
+    chat_id: int,
+    telegram: Any,
+    session: AsyncSession,
+    llm: Any,
+) -> None:
+    """Route res_seating:* callback to the appropriate seating sub-step. T024, T034, FR-006."""
+    seating_val = cq_data.split(":", 1)[1]
+    res_draft = await reservation_draft_service.get_draft(customer.id)
+    lang: Language = res_draft.language if res_draft else Language.EN
+    ar = lang in (Language.AR_LB, Language.ARABIZI)
+
+    # T034: check if we're in modification seating context
+    cb_chat_state = await draft_store.get_chat_state(customer.id) or {}
+    is_modification = cb_chat_state.get("waiting_for") == "reservation_modify_seating"
+    modification_reservation_id: str = cb_chat_state.get("modification_reservation_id", "")
+
+    if seating_val == "indoor":
+        await draft_store.put_chat_state(
+            customer.id, {"waiting_for": "reservation_seating_smoking"}
+        )
+        buttons = (
+            reservation_prompts.SMOKING_BUTTONS_AR if ar else reservation_prompts.SMOKING_BUTTONS_EN
+        )
+        await telegram.send_message(
+            chat_id=chat_id,
+            text=reservation_prompts.SMOKING.get(lang, reservation_prompts.SMOKING[Language.EN]),
+            buttons=buttons,
+        )
+
+    elif seating_val == "outdoor":
+        await draft_store.put_chat_state(
+            customer.id, {"waiting_for": "reservation_seating_terrace"}
+        )
+        buttons = (
+            reservation_prompts.TERRACE_BUTTONS_AR if ar else reservation_prompts.TERRACE_BUTTONS_EN
+        )
+        await telegram.send_message(
+            chat_id=chat_id,
+            text=reservation_prompts.TERRACE.get(lang, reservation_prompts.TERRACE[Language.EN]),
+            buttons=buttons,
+        )
+
+    elif seating_val in ("indoor_smoking", "indoor_non_smoking", "outdoor_non_terrace"):
+        sp_map = {
+            "indoor_smoking": SeatingPreference.INDOOR_SMOKING,
+            "indoor_non_smoking": SeatingPreference.INDOOR_NON_SMOKING,
+            "outdoor_non_terrace": SeatingPreference.OUTDOOR_NON_TERRACE,
+        }
+        sp = sp_map[seating_val]
+        if is_modification and modification_reservation_id and llm is not None:
+            # T034: modification context — update the existing reservation's seating
+            await conversation_service.continue_modification_flow(
+                session, customer, UUID(modification_reservation_id),
+                sp, chat_id, telegram, llm, lang
+            )
+        else:
+            await reservation_draft_service.collect_field(
+                customer.id, "seating_preference", sp
+            )
+            if llm is not None:
+                await conversation_service.continue_reservation_flow(
+                    session, customer, chat_id, telegram, llm, lang
+                )
+
+    elif seating_val == "outdoor_terrace":
+        sp = SeatingPreference.OUTDOOR_TERRACE
+        if is_modification and modification_reservation_id and llm is not None:
+            # T034: modification context
+            await conversation_service.continue_modification_flow(
+                session, customer, UUID(modification_reservation_id),
+                sp, chat_id, telegram, llm, lang
+            )
+        else:
+            # Save outdoor_terrace; _next_step_or_confirm raises TERRACE_TOO_LARGE if
+            # party_size > 5 → sends terrace block message (FR-006, T023).
+            await reservation_draft_service.collect_field(
+                customer.id, "seating_preference", SeatingPreference.OUTDOOR_TERRACE
+            )
+            if llm is not None:
+                await conversation_service.continue_reservation_flow(
+                    session, customer, chat_id, telegram, llm, lang
+                )
 
 
 @router.post("/telegram/webhook/{secret_path}")
