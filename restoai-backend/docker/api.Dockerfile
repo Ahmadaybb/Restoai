@@ -12,6 +12,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 COPY app/ ./app/
 COPY data/ ./data/
+COPY img_classifier/ ./img_classifier/
 COPY alembic/ ./alembic/
 COPY alembic/alembic.ini ./
 

@@ -45,6 +45,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     load_classifier()
 
+    from app.infra.image_classifier import load_image_classifier
+    ic = load_image_classifier()
+    if ic is None:
+        logger.warning("image_classifier_unavailable")
+    app.state.image_classifier = ic
+
     from app.repositories import menu_repo
     menu_repo.load_menu()
 

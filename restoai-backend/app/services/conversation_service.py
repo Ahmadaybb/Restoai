@@ -59,6 +59,10 @@ from app.services.tools import render_reservation_confirmation as render_res_con
 
 logger = logging.getLogger(__name__)
 
+_PRICE_QUESTION_KEYWORDS = frozenset({
+    "price", "prices", "how much", "cost", "كم", "سعر", "بكم", "كم سعر",
+})
+
 _MODIFICATION_KEYWORDS = frozenset({
     "change", "modify", "update", "edit", "reschedule", "adjust", "alter",
     "بدّل", "غيّر", "عدّل",
@@ -192,11 +196,50 @@ async def handle_text(
     buttons: list[dict[str, str]] | None = None
 
     try:
-        # Bug 2 fix: if an active reservation state machine is mid-flow, route
-        # directly to it — don't let intent misclassification derail the turn.
-        active_chat_state = await draft_store.get_chat_state(customer.id) or {}
+        try:
+            active_chat_state = await draft_store.get_chat_state(customer.id) or {}
+        except RuntimeError:
+            active_chat_state = {}  # Redis not initialised (e.g. in unit tests)
+
+        # Fokhara price follow-up: user asked about prices after the bot listed
+        # the 4 clay-pot dishes — answer directly then clear the context.
+        if active_chat_state.get("fokhara_context") and _looks_like_price_question(text):
+            reply_text, buttons = await _handle_fokhara_price_query(reply_lang)
+            new_state = {k: v for k, v in active_chat_state.items() if k != "fokhara_context"}
+            try:
+                await draft_store.put_chat_state(customer.id, new_state)
+            except RuntimeError:
+                pass
+            # Skip normal routing — send directly
+            await messenger.send_message(
+                chat_id=telegram_chat_id, text=reply_text, buttons=buttons
+            )
+            outbound_turn = Turn(
+                conversation_id=conv.id,
+                sender="bot",
+                text=redact(reply_text),
+                language=reply_lang,
+            )
+            await transcript_repo.append_turn(session, outbound_turn)
+            await session.commit()
+            return
+
         active_waiting_for: str = active_chat_state.get("waiting_for", "")
-        if active_waiting_for.startswith("reservation_"):
+        in_reservation_flow = active_waiting_for.startswith("reservation_")
+
+        # Bug 3: if the reservation state machine is waiting but the input clearly
+        # doesn't match the expected field, clear the stale wait state and fall
+        # through to normal intent routing instead.
+        if in_reservation_flow and not _input_matches_field(text, active_waiting_for):
+            in_reservation_flow = False
+            try:
+                await draft_store.put_chat_state(
+                    customer.id, {**active_chat_state, "waiting_for": ""}
+                )
+            except RuntimeError:
+                pass
+
+        if in_reservation_flow:
             reply_text, buttons = await _handle_reservation_intent(
                 session, customer, text, reply_lang, llm, conv.id
             )
@@ -240,6 +283,36 @@ async def handle_text(
     )
     await transcript_repo.append_turn(session, outbound_turn)
     await session.commit()
+
+
+def _looks_like_price_question(text: str) -> bool:
+    lower = text.lower()
+    return any(kw in lower for kw in _PRICE_QUESTION_KEYWORDS)
+
+
+async def _handle_fokhara_price_query(
+    lang: Language,
+) -> tuple[str, list[dict[str, str]] | None]:
+    """Return prices for all four fokhara (clay pot) dishes."""
+    from app.repositories import menu_repo
+
+    dish_names_en = ["Meat Frikeh", "Meat Rice", "Chicken Frikeh", "Chicken Rice"]
+    dish_names_ar = ["فريكة باللحم", "رز باللحم", "فريكة بالدجاج", "رز بالدجاج"]
+    ar = lang in (Language.AR_LB, Language.ARABIZI)
+
+    lines: list[str] = []
+    for en_name, ar_name in zip(dish_names_en, dish_names_ar):
+        item = next(
+            (i for i in menu_repo.get_menu() if en_name.lower() in i.name_en.lower()),
+            None,
+        )
+        price_str = f"${item.price_usd:.2f}" if item else "N/A"
+        label = ar_name if ar else en_name
+        lines.append(f"- {label} — {price_str}")
+
+    if ar:
+        return "إليك الأسعار:\n" + "\n".join(lines), None
+    return "Here are the prices:\n" + "\n".join(lines), None
 
 
 async def _handle_query_intent(
@@ -712,6 +785,77 @@ async def _handle_reservation_intent(
 
 
 # ── Modification helpers ──────────────────────────────────────────────────────
+
+
+_TIME_PATTERNS = frozenset({
+    "am", "pm", "a.m", "p.m", "noon", "midnight",
+    "morning", "evening", "night", "afternoon",
+    "صباح", "مساء", "ظهر", "ليل",
+    "masa", "sbeh", "leil",
+})
+
+_DATE_PATTERNS = frozenset({
+    "today", "tomorrow", "yesterday", "sunday", "monday", "tuesday",
+    "wednesday", "thursday", "friday", "saturday",
+    "jan", "feb", "mar", "apr", "may", "jun",
+    "jul", "aug", "sep", "oct", "nov", "dec",
+    "اليوم", "بكرا", "بكره", "الأحد", "الاثنين", "الثلاثاء",
+    "الأربعاء", "الخميس", "الجمعة", "السبت",
+    "bukra", "lyom", "nhar",
+})
+
+
+def _has_digits(text: str) -> bool:
+    return any(c.isdigit() for c in text)
+
+
+def _input_matches_field(text: str, waiting_for: str) -> bool:
+    """Return True when the user's input is plausibly an answer for waiting_for.
+
+    Fields that accept button-driven input (seating, select, modify, cancel)
+    always return True so text fallback re-sends the buttons instead of
+    breaking the flow.
+    """
+    # Button-driven steps and open-ended states always pass through
+    _OPEN_STATES = {
+        "reservation_seating_indoor_outdoor",
+        "reservation_seating_smoking",
+        "reservation_seating_terrace",
+        "reservation_seating_reask",
+        "reservation_modify_seating",
+        "reservation_modify_pending",
+        "reservation_select_for_modify",
+        "reservation_select_for_cancel",
+        "reservation_date_confirm",
+    }
+    if waiting_for in _OPEN_STATES:
+        return True
+
+    lower = text.strip().lower()
+
+    if waiting_for == "reservation_time":
+        return _has_digits(lower) or any(kw in lower for kw in _TIME_PATTERNS)
+
+    if waiting_for == "reservation_date":
+        return _has_digits(lower) or any(kw in lower for kw in _DATE_PATTERNS)
+
+    if waiting_for == "reservation_party_size":
+        number_words = {
+            "one", "two", "three", "four", "five", "six", "seven", "eight",
+            "nine", "ten", "eleven", "twelve",
+            "واحد", "اثنين", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة",
+        }
+        return _has_digits(lower) or any(w in lower for w in number_words)
+
+    if waiting_for == "reservation_name":
+        # Any non-empty, not-all-digits string is a plausible name
+        return bool(lower) and not lower.replace(" ", "").isdigit()
+
+    if waiting_for == "reservation_phone":
+        return _has_digits(lower)
+
+    # Default: pass through for any unrecognised reservation_* state
+    return True
 
 
 def _looks_like_modification(text: str) -> bool:

@@ -25,6 +25,7 @@ from app.infra.redaction import redact
 from app.services import (
     conversation_service,
     customer_service,
+    image_service,
     order_draft_service,
     order_service,
     reservation_draft_service,
@@ -110,6 +111,11 @@ async def _process_update(
                 chat_id=chat_id,
                 text="✅ Phone number saved. You can now confirm your orders.",
             )
+            return
+
+        # Photo message — food image recognition
+        if "photo" in msg:
+            await _handle_photo_message(app, customer, chat_id, msg, telegram)
             return
 
         # Location share (FR-010, T088: fresh location also saved to Postgres)
@@ -369,6 +375,116 @@ async def _process_update(
                 chat_id=chat_id,
                 text="📍 Please share your delivery address.",
             )
+
+
+async def _handle_photo_message(
+    app: object,
+    customer: Any,
+    chat_id: int,
+    msg: dict[str, Any],
+    telegram: Any,
+) -> None:
+    """Route a photo message through the image classifier and reply with dish info."""
+    from app.domain.language import Language
+    from app.infra import draft_store as _draft_store
+    from app.infra.image_classifier import DISPLAY_NAMES, ImageClassifier
+    from app.services import reservation_draft_service
+    from app.services.language_service import detect as lang_detect, reply_language
+
+    ic: ImageClassifier | None = getattr(getattr(app, "state", None), "image_classifier", None)
+    if ic is None:
+        await telegram.send_message(
+            chat_id=chat_id,
+            text="Image recognition is not available right now.",
+        )
+        return
+
+    # Language: caption > reservation draft > English
+    caption: str = msg.get("caption", "") or ""
+    if caption:
+        detected = lang_detect(caption)
+        lang = reply_language(detected)
+    else:
+        draft = await reservation_draft_service.get_draft(customer.id)
+        lang = draft.language if draft is not None else Language.EN
+
+    ar = lang in (Language.AR_LB, Language.ARABIZI)
+
+    # Download highest-resolution photo
+    photos: list[dict[str, Any]] = msg.get("photo", [])
+    if not photos:
+        return
+    file_id: str = photos[-1]["file_id"]
+    try:
+        image_bytes = await telegram.download_file_bytes(file_id)
+    except Exception:
+        logger.warning("photo_download_failed", extra={"file_id": redact(file_id)})
+        await telegram.send_message(
+            chat_id=chat_id,
+            text="Image recognition is not available right now.",
+        )
+        return
+
+    class_name, confidence = ic.predict(image_bytes)
+    display_name = DISPLAY_NAMES.get(class_name, class_name)
+
+    # Special case: fokhara maps to multiple clay-pot dishes — no single price
+    if class_name == "fokhara":
+        fokhara_dishes = ["Meat Frikeh", "Meat Rice", "Chicken Frikeh", "Chicken Rice"]
+        chat_state = await _draft_store.get_chat_state(customer.id) or {}
+        chat_state["fokhara_context"] = fokhara_dishes
+        await _draft_store.put_chat_state(customer.id, chat_state)
+        text = (
+            "🍽️ يبدو أن هذا طبق فخار!\n"
+            "يمكن أن يكون: فريكة باللحم، رز باللحم، فريكة بالدجاج، أو رز بالدجاج.\n\n"
+            "هل تريد طلب أحدها؟ فقط أخبرني!"
+        ) if ar else (
+            "🍽️ This looks like a Clay Pot dish (Fokhara)!\n"
+            "This could be one of: Meat Frikeh, Meat Rice, Chicken Frikeh, or Chicken Rice.\n\n"
+            "Would you like to order one? Just tell me which one!"
+        )
+        await telegram.send_message(chat_id=chat_id, text=text)
+        return
+
+    if confidence < 0.50:
+        text = (
+            "🤔 لست متأكداً من هذا الطبق.\n"
+            "تفقد قائمتنا: https://menu.omegasoftware.ca/mlmksal"
+        ) if ar else (
+            "🤔 I'm not sure what dish this is.\n"
+            "Check our full menu: https://menu.omegasoftware.ca/mlmksal"
+        )
+        await telegram.send_message(chat_id=chat_id, text=text)
+        return
+
+    menu_item = image_service.find_menu_item_for_class(class_name)
+    if menu_item is not None:
+        price = f"{menu_item.price_usd:.2f}"
+        if ar:
+            name_ar = menu_item.name_ar or display_name
+            desc = (menu_item.description_ar or "").strip()
+            text = f"🍽️ يبدو أن هذه {name_ar}! (${price})\n"
+            if desc:
+                text += f"{desc}\n\n"
+            else:
+                text += "\n"
+            text += "هل تريد طلبها؟"
+        else:
+            desc = (menu_item.description_en or "").strip()
+            text = f"🍽️ This looks like {display_name}! (${price})\n"
+            if desc:
+                text += f"{desc}\n\n"
+            else:
+                text += "\n"
+            text += "Would you like to order it? Just tell me!"
+    else:
+        text = (
+            f"🍽️ يبدو أن هذه {display_name}!\nهل تريد طلبها؟"
+        ) if ar else (
+            f"🍽️ This looks like {display_name}!\nWould you like to order it? Just tell me!"
+        )
+
+    await telegram.send_message(chat_id=chat_id, text=text)
 
 
 async def _handle_res_seating_callback(
