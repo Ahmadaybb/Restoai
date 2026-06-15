@@ -19,12 +19,11 @@ dist/
 build/
 *.bin
 *.safetensors
-*.pt
-*.pth
 hf_cache/
 specs/
-img_classifier/
 intent_classifier/
+img_classifier/confusion_matrix.png
+img_classifier/training_curves.png
 Dockerfile*
 .dockerignore
 *.log

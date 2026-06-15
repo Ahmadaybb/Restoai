@@ -122,6 +122,13 @@ class TelegramClient:
             reply_markup=keyboard,
         )
 
+    async def download_file_bytes(self, file_id: str) -> bytes:
+        """Download a Telegram file by file_id and return its raw bytes."""
+        bot = Bot(token=self._bot_token)
+        tg_file = await bot.get_file(file_id)
+        data = await tg_file.download_as_bytearray()
+        return bytes(data)
+
     async def stop(self) -> None:
         if self._app is not None:
             await self._app.updater.stop()  # type: ignore[union-attr]
