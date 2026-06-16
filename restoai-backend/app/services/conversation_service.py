@@ -728,6 +728,12 @@ async def _handle_reservation_intent(
     if waiting_for == "reservation_name":
         name = text.strip()
         if name:
+            # If input looks like a phone number (≥6 digits, no letters), reprompt
+            digits_only = name.replace(" ", "").replace("+", "").replace("-", "")
+            if digits_only.isdigit() and len(digits_only) >= 6:
+                if lang in (Language.AR_LB, Language.ARABIZI):
+                    return "يبدو أنك أدخلت رقم هاتف 😊 ما اسمك للحجز؟", None
+                return "That looks like a phone number 😊 What's the name for the reservation?", None
             await reservation_draft_service.collect_field(customer.id, "name", name)
             return await _next_step_or_confirm(session, customer, lang, llm)
         return _res_prompt(reservation_prompts.NAME, lang), None
@@ -848,8 +854,7 @@ def _input_matches_field(text: str, waiting_for: str) -> bool:
         return _has_digits(lower) or any(w in lower for w in number_words)
 
     if waiting_for == "reservation_name":
-        # Any non-empty, not-all-digits string is a plausible name
-        return bool(lower) and not lower.replace(" ", "").isdigit()
+        return bool(lower)  # accept any non-empty input, including digit strings
 
     if waiting_for == "reservation_phone":
         return _has_digits(lower)

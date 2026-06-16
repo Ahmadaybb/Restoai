@@ -2,6 +2,7 @@
 
 SQL only — never raises HTTP errors. Imported only by app/services/.
 """
+import datetime as _dt
 import uuid
 from datetime import UTC, datetime
 
@@ -96,3 +97,20 @@ async def cancel(
         state=ReservationState.CANCELLED.value,
         cancelled_at=datetime.now(tz=UTC),
     )
+
+
+async def list_all(
+    session: AsyncSession,
+    *,
+    date: _dt.date | None = None,
+    state: ReservationState | None = None,
+) -> list[Reservation]:
+    """Return reservations ordered by date asc, time asc. Optionally filter."""
+    q = select(ReservationORM)
+    if date is not None:
+        q = q.where(ReservationORM.date == date)
+    if state is not None:
+        q = q.where(ReservationORM.state == state.value)
+    q = q.order_by(ReservationORM.date.asc(), ReservationORM.time.asc())
+    result = await session.execute(q)
+    return [_orm_to_domain(row) for row in result.scalars().all()]
