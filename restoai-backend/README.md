@@ -84,6 +84,45 @@ failure-path scenarios.
 
 ---
 
+## Dispatcher UI (restoai-frontend)
+
+A mobile-first React + Vite + Tailwind CSS web app for the restaurant dispatcher.
+
+### Features
+
+| Tab | Description |
+|-----|-------------|
+| **Floor** | Live order queue grouped by 🚚 Delivery and 📦 Pickup. Inline advance and cancel buttons on each card. Auto-refreshes every 30 s. |
+| **Bookings** | Reservation list with Arrived / No Show status tracking. Create new reservations via the + FAB. |
+| **Escalations** | Active human-takeover conversations from the Telegram bot. Header badge alerts dispatcher when a new one arrives. |
+| **Settings** | Dispatcher profile, API health check, restaurant info, quick links. Sign-out button. |
+
+### Order state machine
+
+```
+awaiting_dispatcher_review
+        │
+        ▼  "Start Making"
+  entered_in_pos
+        │
+   delivery ──► out_for_delivery ──► delivered
+   pickup  ──────────────────────► delivered
+        │                                │
+        └── cancelled (any active state) ┘
+```
+
+### Running the frontend
+
+```bash
+cd restoai-frontend
+npm install
+npm run dev        # Vite dev server on http://localhost:5173
+```
+
+Set `VITE_API_BASE_URL` in `.env.local` (defaults to `http://localhost:8000`).
+
+---
+
 ## Development
 
 ### Running tests locally (without Docker)

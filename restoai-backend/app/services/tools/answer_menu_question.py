@@ -40,7 +40,7 @@ _SYSTEM_AR = """\
 """
 
 _USER_TEMPLATE = """\
-Customer question: {question}
+{history_section}Customer question: {question}
 
 Menu citations:
 {citations_text}
@@ -71,7 +71,15 @@ async def answer_menu_question(
         for i, chunk in enumerate(chunks)
     )
     system = _SYSTEM_AR if inp.language == Language.AR_LB else _SYSTEM_EN
+
+    if inp.recent_turns:
+        history_lines = "\n".join(f"- {t}" for t in inp.recent_turns[-2:])
+        history_section = f"Recent conversation context:\n{history_lines}\n\n"
+    else:
+        history_section = ""
+
     user_msg = _USER_TEMPLATE.format(
+        history_section=history_section,
         question=inp.question,
         citations_text=citations_text,
     )

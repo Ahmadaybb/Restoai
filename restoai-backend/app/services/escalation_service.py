@@ -103,10 +103,14 @@ async def close_handoff(
 def _try_enqueue_notify(conversation_id: UUID) -> None:
     """Best-effort RQ enqueue — silently skipped when worker is not running."""
     try:
+        import redis as sync_redis
         import rq
 
-        from app.infra.redis_client import get_redis
-        queue = rq.Queue(connection=get_redis())  # type: ignore[arg-type]
+        from app.infra.settings import get_settings
+
+        settings = get_settings()
+        conn = sync_redis.from_url(settings.REDIS_URL)
+        queue = rq.Queue(connection=conn)
         queue.enqueue("app.workers.jobs.dispatcher_notify", str(conversation_id))
     except Exception:  # noqa: BLE001
         logger.debug("dispatcher_notify_enqueue_skipped")

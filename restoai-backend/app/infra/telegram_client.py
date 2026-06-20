@@ -122,6 +122,20 @@ class TelegramClient:
             reply_markup=keyboard,
         )
 
+    async def answer_callback_query(
+        self,
+        *,
+        callback_query_id: str,
+        text: str = "",
+        show_alert: bool = False,
+    ) -> None:
+        bot = Bot(token=self._bot_token)
+        await bot.answer_callback_query(
+            callback_query_id=callback_query_id,
+            text=text,
+            show_alert=show_alert,
+        )
+
     async def download_file_bytes(self, file_id: str) -> bytes:
         """Download a Telegram file by file_id and return its raw bytes."""
         bot = Bot(token=self._bot_token)

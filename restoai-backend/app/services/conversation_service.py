@@ -76,6 +76,42 @@ _CANCELLATION_KEYWORDS = frozenset({
     "ilghi", "ilghaa", "3am bilghi",
 })
 
+_START_OVER_KEYWORDS = frozenset({
+    "start over", "start fresh", "start again", "clear cart", "clear order",
+    "clear everything", "reset order", "empty cart", "wipe cart", "new order",
+    "من الأول", "بدي ابدأ من أول", "امسح الطلب", "ابدأ من جديد", "الغ الطلب",
+})
+
+_QUESTION_WORDS = frozenset({
+    "what", "how", "is", "are", "why", "when", "where", "which", "who",
+    "do", "does", "can", "should", "tell", "explain",
+    "كيف", "ما", "ماذا", "هل", "متى", "أين",
+})
+
+_PRONOUNS = frozenset({"it", "that", "this", "them", "those"})
+
+# ── Upsell / recommendation data ─────────────────────────────────────────────
+
+_DRINK_CATEGORIES = frozenset({
+    "Cold Beverages", "Hot Beverages", "Fresh juice", "Laban",
+})
+
+# Ordered category → complementary categories to suggest (priority order)
+_CATEGORY_PAIRINGS: dict[str, list[str]] = {
+    "Salads":                              ["Sfiha Experts", "Hot Mezza"],
+    "Cold Mezza":                          ["Sfiha Experts", "Hot Mezza"],
+    "Hot Mezza":                           ["Salads", "Cold Mezza"],
+    "Grills":                              ["Salads", "Cold Mezza"],
+    "Main Course":                         ["Salads", "Cold Mezza"],
+    "Breakfast":                           ["Sfiha Experts", "Fresh juice"],
+    "Sfiha Experts":                       ["Salads", "Cold Mezza"],
+    "Burgers":                             ["Salads", "Cold Mezza"],
+    "Hot Sandwiches":                      ["Salads", "Cold Mezza"],
+    "Cold Sandwiches":                     ["Salads", "Hot Mezza"],
+    "Authentic Woodfire Tannour Manakish": ["Salads", "Cold Mezza"],
+    "Fatteh":                              ["Salads"],
+}
+
 # Degradation messages per language
 _DEGRADATION = {
     Language.EN: (
@@ -239,18 +275,57 @@ async def handle_text(
             except RuntimeError:
                 pass
 
+        # Fetch the bot's last 2 replies for RAG context (enables follow-up questions).
+        recent_bot_turns: list[str] = []
+        try:
+            recent = await transcript_repo.get_recent_turns(session, conv.id, limit=6)
+            recent_bot_turns = [t.text for t in recent if t.sender == "bot"][-2:]
+        except Exception:
+            pass
+
         if in_reservation_flow:
             reply_text, buttons = await _handle_reservation_intent(
                 session, customer, text, reply_lang, llm, conv.id
             )
-        elif intent_result in (Intent.ORDER, Intent.UNKNOWN):
+        elif intent_result == Intent.ORDER:
             reply_text, buttons = await _handle_order_intent(
                 session, customer, text, reply_lang, llm, conv.id
             )
         elif intent_result == Intent.QUERY:
-            reply_text, buttons = await _handle_query_intent(
-                session, text, reply_lang, llm, embedder
-            )
+            # Short bare food names (e.g. "fattoush") are often classified as
+            # QUERY but are actually ORDER — check before sending to RAG.
+            if _looks_like_bare_food_order(text):
+                reply_text, buttons = await _handle_order_intent(
+                    session, customer, text, reply_lang, llm, conv.id
+                )
+            else:
+                reply_text, buttons = await _handle_query_intent(
+                    session, text, reply_lang, llm, embedder, recent_bot_turns
+                )
+                # Track which dish the customer just asked about so we can
+                # resolve pronouns like "it" in their next order message.
+                dish_name = _extract_dish_from_query(text)
+                if dish_name:
+                    try:
+                        qs = await draft_store.get_chat_state(customer.id) or {}
+                        await draft_store.put_chat_state(
+                            customer.id, {**qs, "last_mentioned_dish": dish_name}
+                        )
+                    except RuntimeError:
+                        pass
+        elif intent_result == Intent.UNKNOWN:
+            # If there's an active order draft, treat as order continuation.
+            # If text is a short bare food name, also treat as ORDER.
+            # Otherwise fall through to RAG.
+            active_order_draft = await order_draft_service.get_draft(customer.id)
+            if active_order_draft or _looks_like_bare_food_order(text):
+                reply_text, buttons = await _handle_order_intent(
+                    session, customer, text, reply_lang, llm, conv.id
+                )
+            else:
+                reply_text, buttons = await _handle_query_intent(
+                    session, text, reply_lang, llm, embedder, recent_bot_turns
+                )
         elif intent_result == Intent.RESERVATION:
             reply_text, buttons = await _handle_reservation_intent(
                 session, customer, text, reply_lang, llm, conv.id
@@ -290,6 +365,21 @@ def _looks_like_price_question(text: str) -> bool:
     return any(kw in lower for kw in _PRICE_QUESTION_KEYWORDS)
 
 
+def _looks_like_bare_food_order(text: str) -> bool:
+    """Return True when text is a short food name (≤4 words, no question markers,
+    and fuzzy-matches a menu item). Used to route QUERY/UNKNOWN intent to ORDER."""
+    from app.repositories import menu_repo as _mr
+
+    words = text.lower().split()
+    if len(words) > 4:
+        return False
+    if text.strip().endswith("?"):
+        return False
+    if any(w in _QUESTION_WORDS for w in words):
+        return False
+    return bool(_mr.find_by_phrase(text))
+
+
 async def _handle_fokhara_price_query(
     lang: Language,
 ) -> tuple[str, list[dict[str, str]] | None]:
@@ -321,6 +411,7 @@ async def _handle_query_intent(
     reply_lang: Language,
     llm: LLMClient,
     embedder: EmbeddingClient | None,
+    recent_bot_turns: list[str] | None = None,
 ) -> tuple[str, list[dict[str, str]] | None]:
     """Route query intent to answer_menu_question (US2, FR-007, FR-008).
 
@@ -334,12 +425,159 @@ async def _handle_query_intent(
         return stub, None
 
     qa_result = await qa_tool.answer_menu_question(
-        AnswerMenuQuestionIn(question=text, language=reply_lang),
+        AnswerMenuQuestionIn(
+            question=text,
+            language=reply_lang,
+            recent_turns=recent_bot_turns or [],
+        ),
         session=session,
         embedder=embedder,
         llm=llm,
     )
     return qa_result.answer, None
+
+
+def _pick_recommendation(draft: "OrderDraft") -> "MenuItem | None":
+    """Return one complementary menu item not already in the cart, or None."""
+    from app.repositories import menu_repo as _mr
+
+    ordered_ids = {item.menu_item_id for item in draft.items}
+    ordered_cats: list[str] = []
+    for item in draft.items:
+        mi = _mr.get_item(item.menu_item_id)
+        if mi and mi.category not in ordered_cats:
+            ordered_cats.append(mi.category)
+
+    for cat in ordered_cats:
+        for target_cat in _CATEGORY_PAIRINGS.get(cat, []):
+            already_has = False
+            for i in draft.items:
+                m = _mr.get_item(i.menu_item_id)
+                if m and m.category == target_cat:
+                    already_has = True
+                    break
+            if already_has:
+                continue
+            candidates = [
+                mi for mi in _mr.get_menu()
+                if mi.category == target_cat and mi.available and mi.id not in ordered_ids
+            ]
+            if candidates:
+                return candidates[0]
+    return None
+
+
+def _has_drink(draft: "OrderDraft") -> bool:
+    """Return True if the cart already contains a drink."""
+    from app.repositories import menu_repo as _mr
+
+    for item in draft.items:
+        mi = _mr.get_item(item.menu_item_id)
+        if mi and mi.category in _DRINK_CATEGORIES:
+            return True
+    return False
+
+
+def _build_upsell(draft: "OrderDraft", lang: Language) -> str:
+    """Return a 1–2 line upsell string, or empty string if nothing to suggest."""
+    from app.repositories import menu_repo as _mr
+
+    ar = lang in (Language.AR_LB, Language.ARABIZI)
+    lines: list[str] = []
+
+    rec = _pick_recommendation(draft)
+    if rec:
+        price = f"${rec.price_usd:.2f}"
+        name = (rec.name_ar or rec.name_en) if ar else rec.name_en
+        lines.append(
+            f"💡 أنصح أيضاً بـ {name} — {price}" if ar
+            else f"💡 You might also enjoy {rec.name_en} — {price}"
+        )
+
+    if not _has_drink(draft):
+        all_items = _mr.get_menu()
+        ayran = next(
+            (mi for mi in all_items if mi.name_en.upper() == "AYRAN BOTTLE" and mi.available),
+            None,
+        )
+        pepsi = next(
+            (mi for mi in all_items if mi.name_en.upper() == "PEPSI" and mi.available),
+            None,
+        )
+        if ayran and pepsi:
+            if ar:
+                lines.append(f"🥤 تريد مشروب؟ عنا {ayran.name_ar or ayran.name_en} أو {pepsi.name_en}")
+            else:
+                lines.append(f"🥤 Would you like a drink? We have Ayran Bottle or Pepsi!")
+        elif ayran or pepsi:
+            drink = ayran or pepsi
+            name = (drink.name_ar or drink.name_en) if ar else drink.name_en  # type: ignore[union-attr]
+            lines.append(
+                f"🥤 تريد مشروب؟ جرّب {name}" if ar
+                else f"🥤 Want a drink? Try {name}!"
+            )
+
+    return "\n".join(lines)
+
+
+def _looks_like_phone(text: str) -> bool:
+    digits = "".join(c for c in text if c.isdigit())
+    return len(digits) >= 6
+
+
+def _normalize_phone(raw: str) -> str | None:
+    """Convert a raw phone input to E.164, or return None if not parseable."""
+    import re as _re2
+    raw = raw.strip()
+    # Already E.164
+    if _re2.match(r"^\+\d{8,15}$", raw):
+        return raw
+    digits = "".join(c for c in raw if c.isdigit())
+    # Lebanese 8-digit mobile (starts with 3, 7, or 8)
+    if len(digits) == 8 and digits[0] in "378":
+        return f"+961{digits}"
+    # +961 with country code already in digits: 96171234567
+    if len(digits) == 11 and digits.startswith("961"):
+        return f"+{digits}"
+    # 00961XXXXXXXX
+    if len(digits) == 13 and digits.startswith("00961"):
+        return f"+{digits[2:]}"
+    return None
+
+
+import re as _re
+
+_QUERY_STRIP_RE = _re.compile(
+    r"^(what(?:'s| is| are)?(?: the)?|tell me about|describe|explain|how much is|price of|كم سعر|ما هو|ما هي)\s+",
+    _re.IGNORECASE,
+)
+
+
+def _extract_dish_from_query(text: str) -> str | None:
+    """Return the best menu item name found in a query string, or None."""
+    from app.repositories import menu_repo as _mr
+
+    clean = _QUERY_STRIP_RE.sub("", text.strip()).rstrip("?").strip()
+    if not clean or len(clean.split()) > 5:
+        return None
+    matches = _mr.find_by_phrase(clean)
+    return matches[0].name_en if matches else None
+
+
+def _resolve_pronouns(text: str, last_dish: str | None) -> str:
+    """Replace the first standalone pronoun in text with last_dish, if present."""
+    if not last_dish:
+        return text
+    words = text.lower().split()
+    if not any(w in _PRONOUNS for w in words):
+        return text
+    return _re.sub(
+        r"\b(it|that|this|them|those)\b",
+        last_dish,
+        text,
+        count=1,
+        flags=_re.IGNORECASE,
+    )
 
 
 async def _handle_order_intent(
@@ -351,6 +589,11 @@ async def _handle_order_intent(
     conversation_id: UUID,
 ) -> tuple[str, list[dict[str, str]] | None]:
     """Two-pass parse_order → match_dish pipeline (T051)."""
+
+    try:
+        chat_state = await draft_store.get_chat_state(customer.id) or {}
+    except RuntimeError:
+        chat_state = {}
 
     # If draft is awaiting a text delivery address, save it and skip order parsing.
     draft_check = await order_draft_service.get_draft(customer.id)
@@ -366,13 +609,41 @@ async def _handle_order_intent(
         buttons = [b.model_dump() for b in readback.buttons]
         return readback.text, buttons
 
+    # Check for start-over / clear cart request before parsing
+    text_lower = text.lower().strip()
+    if any(kw in text_lower for kw in _START_OVER_KEYWORDS):
+        await order_draft_service.clear_items(customer.id)
+        if reply_lang == Language.AR_LB:
+            return "تم مسح طلبك 🗑️ ماذا تريد أن تطلب؟", None
+        return "Cart cleared! 🗑️ What would you like to order?", None
+
     # Detect language for the tool
     detected = lang_detect(text)
 
+    # Resolve pronouns like "it"/"that" using the last dish the bot discussed
+    last_dish = chat_state.get("last_mentioned_dish")
+    parse_text = _resolve_pronouns(text, last_dish)
+    if last_dish and parse_text != text:
+        # Clear the context so it doesn't affect future unrelated messages
+        try:
+            await draft_store.put_chat_state(
+                customer.id, {k: v for k, v in chat_state.items() if k != "last_mentioned_dish"}
+            )
+        except RuntimeError:
+            pass
+
     parse_result = await parse_order_tool.parse_order(
-        ParseOrderIn(text=text, language=detected.language),
+        ParseOrderIn(text=parse_text, language=detected.language),
         llm=llm,
     )
+
+    # Handle remove_phrases — remove matched items from draft
+    from app.repositories import menu_repo as _mr
+    for phrase in parse_result.remove_phrases:
+        matches = _mr.find_by_phrase(phrase)
+        if matches:
+            await order_draft_service.remove_item(customer.id, matches[0].id)
+            logger.info("item_removed", extra={"phrase": phrase, "item_id": matches[0].id})
 
     # Second pass: try to resolve unresolved phrases via match_dish
     resolved_extra: list[OrderItem] = []
@@ -397,6 +668,18 @@ async def _handle_order_intent(
     if all_items:
         await order_draft_service.add_items(customer.id, all_items)
         await draft_store.reset_failcount(customer.id, "order_parse")
+
+    # If only removes happened (no adds, no unresolved), show updated cart
+    if not all_items and not still_unresolved and parse_result.remove_phrases:
+        draft = await order_draft_service.get_draft(customer.id)
+        if draft is None or not draft.items:
+            if reply_lang == Language.AR_LB:
+                return "تم حذف الصنف. طلبك فارغ الآن. ماذا تريد أن تطلب؟", None
+            return "Item removed. Your cart is now empty. What would you like to order?", None
+        readback = await readback_tool.render_readback(
+            RenderReadbackIn(draft=draft, language=reply_lang), llm=llm
+        )
+        return readback.text, [b.model_dump() for b in readback.buttons]
 
     if still_unresolved:
         count = await draft_store.incr_failcount(customer.id, "order_parse")
@@ -425,6 +708,7 @@ async def _handle_order_intent(
         llm=llm,
     )
     buttons = [b.model_dump() for b in readback.buttons]
+
     return readback.text, buttons
 
 
@@ -728,6 +1012,12 @@ async def _handle_reservation_intent(
     if waiting_for == "reservation_name":
         name = text.strip()
         if name:
+            # If input looks like a phone number (≥6 digits, no letters), reprompt
+            digits_only = name.replace(" ", "").replace("+", "").replace("-", "")
+            if digits_only.isdigit() and len(digits_only) >= 6:
+                if lang in (Language.AR_LB, Language.ARABIZI):
+                    return "يبدو أنك أدخلت رقم هاتف 😊 ما اسمك للحجز؟", None
+                return "That looks like a phone number 😊 What's the name for the reservation?", None
             await reservation_draft_service.collect_field(customer.id, "name", name)
             return await _next_step_or_confirm(session, customer, lang, llm)
         return _res_prompt(reservation_prompts.NAME, lang), None
@@ -848,8 +1138,7 @@ def _input_matches_field(text: str, waiting_for: str) -> bool:
         return _has_digits(lower) or any(w in lower for w in number_words)
 
     if waiting_for == "reservation_name":
-        # Any non-empty, not-all-digits string is a plausible name
-        return bool(lower) and not lower.replace(" ", "").isdigit()
+        return bool(lower)  # accept any non-empty input, including digit strings
 
     if waiting_for == "reservation_phone":
         return _has_digits(lower)

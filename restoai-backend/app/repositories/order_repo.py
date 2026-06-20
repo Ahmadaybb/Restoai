@@ -85,6 +85,8 @@ def _orm_to_domain(row: OrderORM) -> ConfirmedOrder:
         created_at=row.created_at,
         dispatcher_id=row.dispatcher_id,
         entered_in_pos_at=row.entered_in_pos_at,
+        out_for_delivery_at=row.out_for_delivery_at,
+        delivered_at=row.delivered_at,
     )
 
 
@@ -136,7 +138,7 @@ async def list_awaiting_review(
 ) -> list[tuple[ConfirmedOrder, Customer]]:
     q = (
         select(OrderORM)
-        .where(OrderORM.state == "awaiting_dispatcher_review")
+        .where(OrderORM.state.in_(["awaiting_dispatcher_review", "entered_in_pos", "out_for_delivery", "delivered"]))
         .options(
             selectinload(OrderORM.customer).selectinload(CustomerORM.addresses)
         )
@@ -201,6 +203,62 @@ async def mark_entered_in_pos(
         dispatcher_id=dispatcher_id,
         dispatcher_name=dispatcher_name,
         action="mark_entered_in_pos",
+        details={},
+    )
+    session.add(action)
+    await session.flush()
+    return _orm_to_domain(row)
+
+
+async def mark_out_for_delivery(
+    session: AsyncSession,
+    order_id: uuid.UUID,
+    dispatcher_id: str,
+    dispatcher_name: str,
+) -> ConfirmedOrder | None:
+    result = await session.execute(
+        select(OrderORM).where(OrderORM.id == order_id)
+    )
+    row = result.scalar_one_or_none()
+    if row is None:
+        return None
+    if row.state == "out_for_delivery":
+        return _orm_to_domain(row)
+    row.state = "out_for_delivery"
+    row.out_for_delivery_at = datetime.now(tz=UTC)
+    action = ActionORM(
+        order_id=order_id,
+        dispatcher_id=dispatcher_id,
+        dispatcher_name=dispatcher_name,
+        action="mark_out_for_delivery",
+        details={},
+    )
+    session.add(action)
+    await session.flush()
+    return _orm_to_domain(row)
+
+
+async def mark_delivered(
+    session: AsyncSession,
+    order_id: uuid.UUID,
+    dispatcher_id: str,
+    dispatcher_name: str,
+) -> ConfirmedOrder | None:
+    result = await session.execute(
+        select(OrderORM).where(OrderORM.id == order_id)
+    )
+    row = result.scalar_one_or_none()
+    if row is None:
+        return None
+    if row.state == "delivered":
+        return _orm_to_domain(row)
+    row.state = "delivered"
+    row.delivered_at = datetime.now(tz=UTC)
+    action = ActionORM(
+        order_id=order_id,
+        dispatcher_id=dispatcher_id,
+        dispatcher_name=dispatcher_name,
+        action="mark_delivered",
         details={},
     )
     session.add(action)

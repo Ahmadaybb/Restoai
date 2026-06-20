@@ -42,6 +42,7 @@ async def search(
     sql = text(
         "SELECT id, menu_item_id, text, language "
         "FROM menu_chunks "
+        "WHERE embedding <=> CAST(:q AS vector) < 0.45 "
         "ORDER BY embedding <=> CAST(:q AS vector) "
         "LIMIT :k"
     )

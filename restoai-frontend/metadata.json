@@ -1,0 +1,6 @@
+{
+  "name": "Farm Dispatcher",
+  "description": "Real-time order dispatching and reservation management dashboard for Lakkis Farm.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

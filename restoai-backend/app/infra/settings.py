@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     # Example: socks5://user:pass@host:port  or  http://host:port
     TELEGRAM_PROXY_URL: str = ""
 
+    # ── Dispatcher notification chat ──────────────────────────────────────────
+    # Telegram chat_id (personal or group) where escalation alerts are sent.
+    # Leave blank to disable Telegram alerts (job will log instead).
+    DISPATCHER_TELEGRAM_CHAT_ID: str = ""
+
     # ── Logging ───────────────────────────────────────────────────────────────
     LOG_LEVEL: str = "INFO"
 

@@ -146,6 +146,8 @@ class ConfirmedOrder(Base):
     )
     dispatcher_id: Mapped[str | None] = mapped_column(String(64))
     entered_in_pos_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    out_for_delivery_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     customer: Mapped["Customer"] = relationship(back_populates="orders")
     order_items: Mapped[list["OrderItem"]] = relationship(back_populates="order")
@@ -277,8 +279,8 @@ class Reservation(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     reference: Mapped[str] = mapped_column(String(12), unique=True, index=True)
-    customer_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("customers.id"), index=True
+    customer_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("customers.id"), nullable=True, index=True
     )
     date: Mapped[date] = mapped_column(Date, index=True)
     time: Mapped[time] = mapped_column(Time(timezone=False))
@@ -295,3 +297,32 @@ class Reservation(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+# ── OrderFeedback ─────────────────────────────────────────────────────────────
+
+class OrderFeedbackORM(Base):
+    __tablename__ = "order_feedback"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False, index=True, unique=True
+    )
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("customers.id"), nullable=False, index=True
+    )
+    conversation_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("conversations.id"), nullable=True
+    )
+    star_rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sentiment: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    feedback_requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    reminder_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    responded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

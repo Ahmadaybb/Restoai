@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -71,6 +71,8 @@ class OrderDetailOut(OrderSummaryOut):
     items: list[OrderItemOut]
     transcript_url: str
     entered_in_pos_at: datetime | None = None
+    out_for_delivery_at: datetime | None = None
+    delivered_at: datetime | None = None
     dispatcher_actions: list[DispatcherActionOut] = []
 
 
@@ -160,6 +162,8 @@ def _detail_out(order: ConfirmedOrder, customer: Customer) -> OrderDetailOut:
         items=[_item_out(i) for i in order.items_snapshot],
         transcript_url=order.transcript_url,
         entered_in_pos_at=order.entered_in_pos_at,
+        out_for_delivery_at=order.out_for_delivery_at,
+        delivered_at=order.delivered_at,
     )
 
 
@@ -243,15 +247,100 @@ async def edit_order(
     return _detail_out(*pair)
 
 
+_CONFIRMATION_MSG: dict[str, str] = {
+    "en":      "✅ Your order has been confirmed and is now being prepared! Thank you for ordering with us 🍽️",
+    "ar_lb":   "✅ طلبك اتأكد وعم يتحضرلك هلق! شكراً لطلبك 🍽️",
+    "arabizi": "✅ Talab-ak etakked w 3am yit7addar! Chukran la talab-ak 🍽️",
+}
+
+_ON_THE_WAY_MSG: dict[str, str] = {
+    "en":      "🚚 Great news! Your order is on its way to you. Our delivery driver is heading your direction now 🙌",
+    "ar_lb":   "🚚 طلبك عم يجيلك هلق! الدليفري طالع عندك 🙌",
+    "arabizi": "🚚 Talab-ak 3am yiji! El delivery tale3 3andak halla2 🙌",
+}
+
+
 @router.post("/orders/{order_id}/entered-in-pos", response_model=OrderDetailOut)
 async def entered_in_pos(
+    order_id: UUID,
+    body: EnteredInPosRequest,
+    request: Request,
+    token: str = Depends(require_auth),
+    session: AsyncSession = Depends(get_session),
+) -> OrderDetailOut:
+    dispatcher_name = validate_dispatcher_name(body.dispatcher_name)
+    result = await dispatcher_service.mark_entered_in_pos(
+        session, order_id, token, dispatcher_name
+    )
+    if result is None:
+        raise _NOT_FOUND
+    pair = await dispatcher_service.get_order(session, order_id)
+    if pair is None:
+        raise _NOT_FOUND
+    order, customer = pair
+
+    # Send Telegram confirmation to the customer
+    telegram = getattr(getattr(request.app, "state", None), "telegram", None)
+    if telegram is not None and customer.telegram_user_id is not None:
+        lang = order.language.value if hasattr(order.language, "value") else str(order.language)
+        msg = _CONFIRMATION_MSG.get(lang, _CONFIRMATION_MSG["en"])
+        try:
+            await telegram.send_message(chat_id=customer.telegram_user_id, text=msg)
+        except Exception:
+            logger.warning("order_confirmation_telegram_failed", extra={"order_id": str(order_id)})
+
+    # Enqueue feedback request now that the order is being processed — customer
+    # will be asked after enough time has passed for delivery (6h reminder window).
+    try:
+        from app.workers.jobs import enqueue_feedback_request
+        enqueue_feedback_request(str(order_id))
+    except Exception:  # noqa: BLE001
+        logger.warning("enqueue_feedback_request_failed", extra={"order_id": str(order_id)})
+
+    return _detail_out(order, customer)
+
+
+@router.post("/orders/{order_id}/out-for-delivery", response_model=OrderDetailOut)
+async def out_for_delivery(
+    order_id: UUID,
+    body: EnteredInPosRequest,
+    request: Request,
+    token: str = Depends(require_auth),
+    session: AsyncSession = Depends(get_session),
+) -> OrderDetailOut:
+    dispatcher_name = validate_dispatcher_name(body.dispatcher_name)
+    result = await dispatcher_service.mark_out_for_delivery(
+        session, order_id, token, dispatcher_name
+    )
+    if result is None:
+        raise _NOT_FOUND
+    pair = await dispatcher_service.get_order(session, order_id)
+    if pair is None:
+        raise _NOT_FOUND
+    order, customer = pair
+
+    # Notify the customer that their delivery is on the way
+    telegram = getattr(getattr(request.app, "state", None), "telegram", None)
+    if telegram is not None and customer.telegram_user_id is not None:
+        lang = order.language.value if hasattr(order.language, "value") else str(order.language)
+        msg = _ON_THE_WAY_MSG.get(lang, _ON_THE_WAY_MSG["en"])
+        try:
+            await telegram.send_message(chat_id=customer.telegram_user_id, text=msg)
+        except Exception:
+            logger.warning("delivery_notification_telegram_failed", extra={"order_id": str(order_id)})
+
+    return _detail_out(order, customer)
+
+
+@router.post("/orders/{order_id}/delivered", response_model=OrderDetailOut)
+async def delivered(
     order_id: UUID,
     body: EnteredInPosRequest,
     token: str = Depends(require_auth),
     session: AsyncSession = Depends(get_session),
 ) -> OrderDetailOut:
     dispatcher_name = validate_dispatcher_name(body.dispatcher_name)
-    result = await dispatcher_service.mark_entered_in_pos(
+    result = await dispatcher_service.mark_delivered(
         session, order_id, token, dispatcher_name
     )
     if result is None:

@@ -131,10 +131,22 @@ async def _process_update(
 
         # Plain text message
         text = msg.get("text", "")
-        if text and llm is not None:
-            await conversation_service.handle_text(
-                session, customer, chat_id, text, telegram, llm, embedder
-            )
+        if text:
+            chat_state = await draft_store.get_chat_state(customer.id) or {}
+            if chat_state.get("waiting_for") == "feedback_comment":
+                await _handle_feedback_comment(
+                    session, customer, chat_id, text, telegram, llm, chat_state
+                )
+                return
+            if chat_state.get("waiting_for") == "pre_confirm_phone":
+                await _handle_pre_confirm_phone(
+                    session, customer, chat_id, text, telegram, llm, chat_state
+                )
+                return
+            if llm is not None:
+                await conversation_service.handle_text(
+                    session, customer, chat_id, text, telegram, llm, embedder
+                )
 
     elif "callback_query" in data:
         cq = data["callback_query"]
@@ -184,21 +196,23 @@ async def _process_update(
                         text="Sorry, there's an issue with your order. Please try again.",
                     )
                 return
-            try:
-                order = await order_service.confirm(session, customer, draft_id)
+
+            # Phone gate: collect before placing if not already saved
+            if not customer.phone_e164:
+                confirm_state = await draft_store.get_chat_state(customer.id) or {}
+                confirm_state["waiting_for"] = "pre_confirm_phone"
+                confirm_state["pending_confirm_draft_id"] = str(draft_id)
+                await draft_store.put_chat_state(customer.id, confirm_state)
                 await telegram.send_message(
                     chat_id=chat_id,
                     text=(
-                        f"✅ Order confirmed! Your order #{str(order.id)[:8]} "
-                        "is being reviewed by our team."
+                        "Almost there! 🎉 What's your phone number so our team can reach you "
+                        "if needed? 📞\n(e.g. 71 000 000 or +961 71 000 000)"
                     ),
                 )
-            except ExternalDependencyError as exc:
-                logger.error("confirm_failed", extra={"error": redact(str(exc))})
-                await telegram.send_message(
-                    chat_id=chat_id,
-                    text="Sorry, I couldn't confirm your order. Please try again.",
-                )
+                return
+
+            await _do_confirm_order(session, customer, chat_id, draft_id, telegram)
 
         elif cq_data.startswith("edit:"):
             draft_id = UUID(cq_data.split(":", 1)[1])
@@ -369,12 +383,249 @@ async def _process_update(
                 text=reservation_prompts.DATE.get(lang, reservation_prompts.DATE[Language.EN]),
             )
 
+        elif cq_data.startswith("feedback:"):
+            parts = cq_data.split(":")
+            if len(parts) == 3:
+                feedback_id = UUID(parts[1])
+                star_rating = int(parts[2])
+                cq_id: str = cq.get("id", "")
+                await _handle_feedback_callback(
+                    session, customer, chat_id, feedback_id, star_rating, cq_id, telegram
+                )
+
+        elif cq_data.startswith("feedback_skip:"):
+            feedback_id = UUID(cq_data.split(":", 1)[1])
+            cq_id = cq.get("id", "")
+            await _handle_feedback_skip_callback(
+                session, customer, chat_id, feedback_id, cq_id, telegram, llm
+            )
+
         elif cq_data == "new_address":
             # T087: customer chose to enter a fresh address (FR-015)
             await telegram.send_message(
                 chat_id=chat_id,
                 text="📍 Please share your delivery address.",
             )
+
+
+async def _do_confirm_order(
+    session: AsyncSession,
+    customer: Any,
+    chat_id: int,
+    draft_id: UUID,
+    telegram: Any,
+) -> None:
+    """Place the order and send the customer a confirmation message."""
+    try:
+        order = await order_service.confirm(session, customer, draft_id)
+        from app.repositories import menu_repo as _mr
+        item_lines = [
+            f"  • {it.quantity}x {(_mr.get_item(it.menu_item_id).name_en if _mr.get_item(it.menu_item_id) else it.menu_item_id)}"
+            for it in order.items_snapshot
+        ]
+        total = float(order.estimated_total_usd)
+        await telegram.send_message(
+            chat_id=chat_id,
+            text=(
+                f"✅ Order confirmed! #{str(order.id)[:8]}\n\n"
+                f"{chr(10).join(item_lines)}\n\n"
+                f"Estimated total: ${total:.2f}\n"
+                "Our team is reviewing your order now 🍽️"
+            ),
+        )
+    except Exception as exc:
+        logger.error("confirm_order_failed", extra={"error": redact(str(exc))})
+        await telegram.send_message(
+            chat_id=chat_id,
+            text="Sorry, something went wrong placing your order. Please tap ✅ Confirm again.",
+        )
+
+
+async def _handle_pre_confirm_phone(
+    session: AsyncSession,
+    customer: Any,
+    chat_id: int,
+    text: str,
+    telegram: Any,
+    llm: Any,
+    chat_state: dict[str, Any],
+) -> None:
+    """Collect phone before order placement, then place the order."""
+    from app.services.conversation_service import _looks_like_phone, _normalize_phone
+
+    if not _looks_like_phone(text):
+        await telegram.send_message(
+            chat_id=chat_id,
+            text="Please send your phone number (e.g. 71 000 000 or +961 71 000 000)",
+        )
+        return
+
+    normalized = _normalize_phone(text)
+    if not normalized:
+        await telegram.send_message(
+            chat_id=chat_id,
+            text="Please send your phone number in full (e.g. +961 71 000 000 or 71000000)",
+        )
+        return
+
+    # Save phone
+    from app.repositories import customer_repo as _cr
+    await _cr.update_fields(session, customer.id, phone_e164=normalized)
+    await session.flush()
+    customer = customer.model_copy(update={"phone_e164": normalized})
+
+    # Clear gate state and place the order
+    draft_id_str = chat_state.get("pending_confirm_draft_id")
+    new_state = {
+        k: v for k, v in chat_state.items()
+        if k not in ("waiting_for", "pending_confirm_draft_id")
+    }
+    await draft_store.put_chat_state(customer.id, new_state)
+
+    if not draft_id_str:
+        await telegram.send_message(
+            chat_id=chat_id,
+            text="Got your number! Please tap ✅ Confirm on your order to place it.",
+        )
+        return
+
+    await _do_confirm_order(session, customer, chat_id, UUID(draft_id_str), telegram)
+
+
+async def _handle_feedback_callback(
+    session: AsyncSession,
+    customer: Any,
+    chat_id: int,
+    feedback_id: UUID,
+    star_rating: int,
+    cq_id: str,
+    telegram: Any,
+) -> None:
+    from app.domain.feedback import FeedbackStatus
+    from app.services import feedback_service
+
+    feedback = await feedback_service.get_by_id(session, feedback_id)
+    if feedback is None:
+        await telegram.answer_callback_query(callback_query_id=cq_id)
+        return
+
+    if feedback.status == FeedbackStatus.RECEIVED:
+        await telegram.answer_callback_query(
+            callback_query_id=cq_id,
+            text="You've already submitted feedback. Thank you!",
+        )
+        return
+
+    await telegram.answer_callback_query(callback_query_id=cq_id)
+
+    await telegram.send_message(
+        chat_id=chat_id,
+        text="Thanks for the rating! Any comments? (Reply to this message or tap Skip)",
+        buttons=[{"label": "Skip", "callback_data": f"feedback_skip:{feedback_id}"}],
+    )
+
+    chat_state = await draft_store.get_chat_state(customer.id) or {}
+    chat_state["waiting_for"] = "feedback_comment"
+    chat_state["pending_feedback_id"] = str(feedback_id)
+    chat_state["pending_star_rating"] = star_rating
+    await draft_store.put_chat_state(customer.id, chat_state)
+
+
+async def _handle_feedback_skip_callback(
+    session: AsyncSession,
+    customer: Any,
+    chat_id: int,
+    feedback_id: UUID,
+    cq_id: str,
+    telegram: Any,
+    llm: Any,
+) -> None:
+    from app.domain.feedback import Sentiment
+    from app.services import feedback_service
+
+    chat_state = await draft_store.get_chat_state(customer.id) or {}
+    star_rating_raw = chat_state.get("pending_star_rating")
+
+    if star_rating_raw is None:
+        feedback = await feedback_service.get_by_id(session, feedback_id)
+        if feedback is None or feedback.star_rating is None:
+            await telegram.answer_callback_query(callback_query_id=cq_id)
+            return
+        star_rating = feedback.star_rating
+    else:
+        star_rating = int(star_rating_raw)
+
+    if star_rating >= 4:
+        sentiment = Sentiment.GOOD
+    elif star_rating == 3:
+        sentiment = Sentiment.NEUTRAL
+    else:
+        sentiment = Sentiment.BAD
+
+    await feedback_service.record_feedback_response(
+        session, feedback_id, star_rating=star_rating, comment=None, sentiment=sentiment
+    )
+
+    new_state = {
+        k: v for k, v in chat_state.items()
+        if k not in ("waiting_for", "pending_feedback_id", "pending_star_rating")
+    }
+    await draft_store.put_chat_state(customer.id, new_state)
+
+    await telegram.answer_callback_query(
+        callback_query_id=cq_id,
+        text="Thank you! Your rating has been recorded. 🙏",
+    )
+
+
+async def _handle_feedback_comment(
+    session: AsyncSession,
+    customer: Any,
+    chat_id: int,
+    text: str,
+    telegram: Any,
+    llm: Any,
+    chat_state: dict[str, Any],
+) -> None:
+    from uuid import UUID as _UUID
+
+    from app.domain.feedback import Sentiment
+    from app.services import feedback_service
+    from app.services.tools.classify_feedback import classify_feedback
+
+    feedback_id_str = chat_state.get("pending_feedback_id")
+    star_rating_raw = chat_state.get("pending_star_rating")
+
+    if feedback_id_str is None or star_rating_raw is None:
+        return
+
+    feedback_id = _UUID(str(feedback_id_str))
+    star_rating = int(star_rating_raw)
+    comment = text[:500]
+
+    if llm is not None:
+        sentiment = await classify_feedback(star_rating, comment, llm)
+    elif star_rating >= 4:
+        sentiment = Sentiment.GOOD
+    elif star_rating == 3:
+        sentiment = Sentiment.NEUTRAL
+    else:
+        sentiment = Sentiment.BAD
+
+    await feedback_service.record_feedback_response(
+        session, feedback_id, star_rating=star_rating, comment=comment, sentiment=sentiment
+    )
+
+    await telegram.send_message(
+        chat_id=chat_id,
+        text="Thank you for your feedback! 🙏 We appreciate it.",
+    )
+
+    new_state = {
+        k: v for k, v in chat_state.items()
+        if k not in ("waiting_for", "pending_feedback_id", "pending_star_rating")
+    }
+    await draft_store.put_chat_state(customer.id, new_state)
 
 
 async def _handle_photo_message(
