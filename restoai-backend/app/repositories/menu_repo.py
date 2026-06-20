@@ -88,25 +88,38 @@ def get_item(item_id: str) -> MenuItem | None:
 
 
 def find_by_phrase(phrase: str) -> list[MenuItem]:
-    """Fuzzy search over en + ar + translit names. Returns best matches."""
+    """Fuzzy search over en + ar + translit names. Returns best matches.
+
+    Uses token_set_ratio for broad recall, then re-ranks with a blended score
+    (token_set_ratio × 0.6 + exact_ratio × 0.4) so that an exact name like
+    "Hummus" beats a longer partial match like "Hummus Har" for the query
+    "hummus".
+    """
     if not _menu_cache:
         return []
-    # Lowercase both sides — rapidfuzz process.extract does NOT auto-lowercase
-    # when a custom scorer is provided, so all-caps names (PEPSI, ICED LATTE)
-    # would score 0 against lowercase customer input without this.
     phrase_lower = phrase.lower()
     choices = {
         item_id: f"{item.name_en} {item.name_ar or ''} {item.name_translit or ''}".lower()
         for item_id, item in _menu_cache.items()
     }
+    # Broad candidate retrieval via token_set_ratio
     results = process.extract(
-        phrase_lower, choices, scorer=fuzz.token_set_ratio, limit=5
+        phrase_lower, choices, scorer=fuzz.token_set_ratio, limit=15
     )
-    return [
-        _menu_cache[item_id]
-        for _, score, item_id in results
-        if score >= _FUZZY_THRESHOLD
-    ]
+    candidates = [(item_id, score) for _, score, item_id in results if score >= _FUZZY_THRESHOLD]
+    if not candidates:
+        return []
+
+    # Re-rank: blend token_set_ratio with exact_ratio to prefer precise matches
+    scored: list[tuple[MenuItem, float]] = []
+    for item_id, tsr in candidates:
+        item = _menu_cache[item_id]
+        er = fuzz.ratio(phrase_lower, item.name_en.lower())
+        blended = 0.6 * tsr + 0.4 * er
+        scored.append((item, blended))
+
+    scored.sort(key=lambda x: x[1], reverse=True)
+    return [item for item, _ in scored[:5]]
 
 
 async def upsert_chunks(

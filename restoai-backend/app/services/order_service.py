@@ -110,6 +110,38 @@ async def mark_entered_in_pos(
     return result
 
 
+async def mark_out_for_delivery(
+    session: AsyncSession,
+    order_id: UUID,
+    dispatcher_id: str,
+    dispatcher_name: str,
+) -> ConfirmedOrder:
+    result = await order_repo.mark_out_for_delivery(
+        session, order_id, dispatcher_id, dispatcher_name
+    )
+    if result is None:
+        raise ValueError(f"Order {order_id} not found")
+    await session.commit()
+    logger.info("order_out_for_delivery", extra={"order_id": str(order_id)})
+    return result
+
+
+async def mark_delivered(
+    session: AsyncSession,
+    order_id: UUID,
+    dispatcher_id: str,
+    dispatcher_name: str,
+) -> ConfirmedOrder:
+    result = await order_repo.mark_delivered(
+        session, order_id, dispatcher_id, dispatcher_name
+    )
+    if result is None:
+        raise ValueError(f"Order {order_id} not found")
+    await session.commit()
+    logger.info("order_delivered", extra={"order_id": str(order_id)})
+    return result
+
+
 async def cancel(
     session: AsyncSession,
     order_id: UUID,

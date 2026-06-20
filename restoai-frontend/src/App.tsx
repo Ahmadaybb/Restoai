@@ -7,6 +7,8 @@ import ReservationsList from "./components/ReservationsList";
 import NewReservation from "./components/NewReservation";
 import EscalationsList from "./components/EscalationsList";
 import ChatEscalation from "./components/ChatEscalation";
+import FeedbackList from "./components/FeedbackList";
+import SettingsPanel from "./components/SettingsPanel";
 
 import {
   Calendar,
@@ -14,6 +16,7 @@ import {
   Grid2X2,
   Settings,
   Plus,
+  MessageCircle,
 } from "lucide-react";
 
 const SEATING_SECTION: Record<string, { section: string; sectionName: string }> = {
@@ -272,6 +275,7 @@ export default function App() {
                 <OrdersQueue
                   refreshKey={ordersRefreshKey}
                   onSelectOrder={(id) => setSelectedOrderId(id)}
+                  onOrderMutated={() => setOrdersRefreshKey((k) => k + 1)}
                 />
               )}
 
@@ -283,6 +287,10 @@ export default function App() {
                   onUpdateReservation={handleUpdateReservation}
                   onTriggerNewReservationForm={handleFloatingAction}
                 />
+              )}
+
+              {activeTab === "Feedback" && (
+                <FeedbackList />
               )}
 
               {activeTab === "Admin" && (
@@ -298,6 +306,13 @@ export default function App() {
                       onEscalationCountChange={setEscalationCount}
                     />
                   )
+              )}
+
+              {activeTab === "Settings" && (
+                <SettingsPanel
+                  onSignOut={handleSignOut}
+                  onViewFeedback={() => setActiveTab("Feedback")}
+                />
               )}
             </div>
           </main>
@@ -337,11 +352,20 @@ export default function App() {
 
             <button
               type="button"
-              onClick={() => { setActiveTab("Admin"); setSelectedOrderId(null); }}
-              className={`flex flex-col items-center justify-center p-2 cursor-pointer transition-colors relative ${activeTab === "Admin" ? "text-olive-700" : "text-zinc-400 hover:text-zinc-600"}`}
+              onClick={() => { setActiveTab("Feedback"); setSelectedOrderId(null); setSelectedEscalationId(null); }}
+              className={`flex flex-col items-center justify-center p-2 cursor-pointer transition-colors ${activeTab === "Feedback" ? "text-olive-700" : "text-zinc-400 hover:text-zinc-600"}`}
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-[9px] font-bold tracking-wider uppercase mt-1">Feedback</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setActiveTab("Settings"); setSelectedOrderId(null); setSelectedEscalationId(null); }}
+              className={`flex flex-col items-center justify-center p-2 cursor-pointer transition-colors relative ${activeTab === "Settings" ? "text-olive-700" : "text-zinc-400 hover:text-zinc-600"}`}
             >
               <Settings className="w-5 h-5" />
-              <span className="text-[9px] font-bold tracking-wider uppercase mt-1">Admin</span>
+              <span className="text-[9px] font-bold tracking-wider uppercase mt-1">Settings</span>
               {escalationCount > 0 && (
                 <span className="absolute top-1.5 right-1 w-2 h-2 bg-red-600 rounded-full border border-white"></span>
               )}

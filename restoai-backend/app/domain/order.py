@@ -42,6 +42,8 @@ class OrderDraft(BaseModel):
 class OrderState(StrEnum):
     AWAITING_DISPATCHER_REVIEW = "awaiting_dispatcher_review"
     ENTERED_IN_POS = "entered_in_pos"
+    OUT_FOR_DELIVERY = "out_for_delivery"
+    DELIVERED = "delivered"
     CANCELLED = "cancelled"
 
 
@@ -59,3 +61,5 @@ class ConfirmedOrder(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     dispatcher_id: str | None = None
     entered_in_pos_at: datetime | None = None
+    out_for_delivery_at: datetime | None = None
+    delivered_at: datetime | None = None

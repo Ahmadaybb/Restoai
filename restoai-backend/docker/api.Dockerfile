@@ -15,5 +15,6 @@ COPY data/ ./data/
 COPY img_classifier/ ./img_classifier/
 COPY alembic/ ./alembic/
 COPY alembic/alembic.ini ./
+COPY scripts/ ./scripts/
 
 CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

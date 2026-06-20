@@ -16,16 +16,20 @@ export default function ReservationsList({
   onUpdateReservation,
   onTriggerNewReservationForm
 }: ReservationsListProps) {
-  const [selectedDayIndex, setSelectedDayIndex] = useState(1); // Default to TUE 19
-  
-  // Date chips list matching Screen 4
-  const dateChips = [
-    { label: "MON", num: 18, dateStr: "2026-06-18" },
-    { label: "TUE", num: 19, dateStr: "2026-06-19" },
-    { label: "WED", num: 20, dateStr: "2026-06-20" },
-    { label: "THU", num: 21, dateStr: "2026-06-21" },
-    { label: "FRI", num: 22, dateStr: "2026-06-22" }
-  ];
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0); // Default to today
+
+  const dateChips = Array.from({ length: 5 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return {
+      label: d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase(),
+      num: d.getDate(),
+      dateStr: `${y}-${m}-${day}`,
+    };
+  });
 
   const currentSelectedDate = dateChips[selectedDayIndex].dateStr;
 
@@ -48,9 +52,10 @@ export default function ReservationsList({
     });
   };
 
-  // Calculate stats dynamically for state honesty
-  const remainingCount = reservations.filter(r => r.status === "Pending").length;
-  const paxExpected = reservations
+  const todayStr = dateChips[0].dateStr;
+  const todayReservations = reservations.filter(r => r.date === todayStr);
+  const remainingCount = todayReservations.filter(r => r.status === "Pending").length;
+  const paxExpected = todayReservations
     .filter(r => r.status === "Pending" || r.status === "Arrived")
     .reduce((acc, curr) => acc + curr.pax, 0);
 
@@ -88,14 +93,6 @@ export default function ReservationsList({
             New
           </button>
         </div>
-      </div>
-
-      {/* Live sync banner */}
-      <div className="mx-4 mb-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-sans flex items-center gap-2">
-        <span>🚧</span>
-        <span>
-          <strong>Live sync coming soon</strong> — reservations shown are local session data only.
-        </span>
       </div>
 
       {/* Date chips wrapper */}

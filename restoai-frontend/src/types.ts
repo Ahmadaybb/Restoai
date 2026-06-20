@@ -3,6 +3,8 @@
 export type OrderState =
   | 'awaiting_dispatcher_review'
   | 'entered_in_pos'
+  | 'out_for_delivery'
+  | 'delivered'
   | 'cancelled'
 
 export type Language = 'en' | 'ar_lb' | 'arabizi'
@@ -50,6 +52,8 @@ export interface Order {
   address?: OrderAddress
   transcript_url?: string
   entered_in_pos_at?: string
+  out_for_delivery_at?: string
+  delivered_at?: string
   dispatcher_actions?: DispatcherAction[]
 }
 
@@ -119,6 +123,37 @@ export interface EscalationDetail extends EscalationSummary {
   active_draft?: ActiveDraft
 }
 
+// ── FEEDBACK TYPES ─────────────────────────────────────────────────────────
+
+export interface FeedbackEntry {
+  id: string
+  order_id: string
+  order_short_id: string
+  customer_name: string
+  customer_phone: string
+  items_summary: string
+  star_rating: number | null
+  comment: string | null
+  sentiment: 'good' | 'bad' | 'neutral' | null
+  status: 'pending' | 'received' | 'no_response'
+  feedback_requested_at: string
+  responded_at: string | null
+}
+
+export interface FeedbackSummary {
+  good: number
+  bad: number
+  neutral: number
+  no_response: number
+  pending: number
+}
+
+export interface FeedbackResponse {
+  feedback: FeedbackEntry[]
+  total: number
+  summary: FeedbackSummary
+}
+
 // ── NAVIGATION ─────────────────────────────────────────────────────────────
 
-export type ActiveTab = 'Floor' | 'Bookings' | 'Admin'
+export type ActiveTab = 'Floor' | 'Bookings' | 'Feedback' | 'Admin' | 'Settings'

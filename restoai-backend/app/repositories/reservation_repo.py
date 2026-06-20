@@ -17,7 +17,7 @@ def _orm_to_domain(row: ReservationORM) -> Reservation:
     return Reservation(
         id=row.id,
         reference=row.reference,
-        customer_id=row.customer_id,
+        customer_id=row.customer_id,  # nullable for dispatcher-created reservations
         date=row.date,
         time=row.time,
         party_size=row.party_size,

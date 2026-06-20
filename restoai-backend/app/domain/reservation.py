@@ -109,7 +109,7 @@ class Reservation(BaseModel):
 
     id: UUID = Field(default_factory=uuid4)
     reference: str = Field(min_length=7, max_length=12)
-    customer_id: UUID
+    customer_id: UUID | None = None
     date: _dt.date
     time: _dt.time
     party_size: int = Field(ge=1, le=_CALL_CENTER_MAX_PARTY)

@@ -83,6 +83,30 @@ async def mark_entered_in_pos(
     return await svc_mark(session, order_id, dispatcher_id, dispatcher_name)
 
 
+async def mark_out_for_delivery(
+    session: AsyncSession,
+    order_id: UUID,
+    dispatcher_token: str,
+    dispatcher_name: str,
+) -> ConfirmedOrder | None:
+    dispatcher_id = _hash_token(dispatcher_token)
+    from app.services.order_service import mark_out_for_delivery as svc_mark
+
+    return await svc_mark(session, order_id, dispatcher_id, dispatcher_name)
+
+
+async def mark_delivered(
+    session: AsyncSession,
+    order_id: UUID,
+    dispatcher_token: str,
+    dispatcher_name: str,
+) -> ConfirmedOrder | None:
+    dispatcher_id = _hash_token(dispatcher_token)
+    from app.services.order_service import mark_delivered as svc_mark
+
+    return await svc_mark(session, order_id, dispatcher_id, dispatcher_name)
+
+
 async def cancel_order(
     session: AsyncSession,
     order_id: UUID,

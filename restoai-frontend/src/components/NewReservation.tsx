@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Reservation } from "../types";
-import { ArrowLeft, Calendar, Clock, HelpCircle, MapPin, CheckCircle, TableProperties, CircleCheck } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, CircleCheck } from "lucide-react";
+import { api } from "../api/client";
 
 interface NewReservationProps {
   onBack: () => void;
@@ -10,30 +11,29 @@ interface NewReservationProps {
 export default function NewReservation({ onBack, onSubmit }: NewReservationProps) {
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("+961 ");
-  const [reservationDate, setReservationDate] = useState("2026-06-19");
-  const [reservationTime, setReservationTime] = useState("12:00 PM");
+  const [reservationDate, setReservationDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [timeHour, setTimeHour] = useState(8);
+  const [timeMinute, setTimeMinute] = useState(0);
+  const [timePeriod, setTimePeriod] = useState<'AM' | 'PM'>('PM');
+  const [timeError, setTimeError] = useState("");
   const [pax, setPax] = useState(2);
-  const [selectedSection, setSelectedSection] = useState("R");
+  const [selectedSeating, setSelectedSeating] = useState("indoor_non_smoking");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  // Map section code to readable names
-  const sectionMapping: Record<string, string> = {
-    "R1": "Family Area",
-    "R2": "Lounge",
-    "T3": "Terrace",
-    "T4": "Garden",
-    "T": "Outdoor",
-    "R": "Indoor"
-  };
+  function to24h(h: number, m: number, period: 'AM' | 'PM') {
+    let hour = h;
+    if (period === 'PM' && h !== 12) hour += 12;
+    if (period === 'AM' && h === 12) hour = 0;
+    return { hour, minute: m };
+  }
 
-  const sectionsList = [
-    { code: "R1", name: "R1 (Family)" },
-    { code: "R2", name: "R2 (Lounge)" },
-    { code: "T3", name: "T3 (Terrace)" },
-    { code: "T4", name: "T4 (Garden)" },
-    { code: "T", name: "T (Outdoor)" },
-    { code: "R", name: "R (Indoor)" }
+  const seatingSections = [
+    { value: "indoor_non_smoking", label: "Indoor Non-Smoking" },
+    { value: "indoor_smoking",     label: "Indoor Smoking" },
+    { value: "outdoor_terrace",    label: "Outdoor Terrace" },
+    { value: "outdoor_non_terrace",label: "Outdoor" },
   ];
 
   const handlePaxIncrement = () => {
@@ -46,33 +46,73 @@ export default function NewReservation({ onBack, onSubmit }: NewReservationProps
     }
   };
 
-  const handleConfirm = (e: React.FormEvent) => {
+  const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerName.trim()) {
       alert("Please provide a guest name.");
       return;
     }
-    
+
+    // Reject past times when booking for today
+    const today = new Date().toISOString().slice(0, 10);
+    const { hour, minute } = to24h(timeHour, timeMinute, timePeriod);
+    if (reservationDate === today) {
+      const picked = new Date();
+      picked.setHours(hour, minute, 0, 0);
+      if (picked <= new Date()) {
+        setTimeError("This time has already passed — please choose a future time.");
+        return;
+      }
+    }
+    setTimeError("");
+    setSubmitError("");
     setSubmitting(true);
-    
-    // Simulate minor reservation submitting feedback
-    setTimeout(() => {
-      const newRes: Reservation = {
-        id: `res-gen-${Date.now()}`,
-        customerName: customerName.trim(),
+
+    const time24 = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+
+    try {
+      const res = await api.createReservation({
+        name: customerName.trim(),
         phone: phone.trim(),
-        pax: pax,
-        time: reservationTime,
         date: reservationDate,
-        section: selectedSection,
-        sectionName: sectionMapping[selectedSection] || "Indoor",
-        notes: notes.trim() || "No notes provided.",
-        status: "Pending"
+        time: time24,
+        party_size: pax,
+        seating_preference: selectedSeating,
+        notes: notes.trim(),
+      });
+
+      if (!res || !res.ok) {
+        const errText = res ? await res.text() : "Network error";
+        setSubmitError(`Failed to create reservation: ${errText}`);
+        setSubmitting(false);
+        return;
+      }
+
+      const data = await res.json();
+      const seatingLabels: Record<string, string> = {
+        indoor_non_smoking: "Indoor Non-Smoking",
+        indoor_smoking: "Indoor Smoking",
+        outdoor_terrace: "Outdoor Terrace",
+        outdoor_non_terrace: "Outdoor",
       };
-      
+      const newRes: Reservation = {
+        id: data.id,
+        customerName: data.name,
+        phone: data.phone,
+        pax: data.party_size,
+        time: data.time.substring(0, 5),
+        date: data.date,
+        section: data.seating_preference.substring(0, 2).toUpperCase(),
+        sectionName: seatingLabels[data.seating_preference] ?? data.seating_preference,
+        notes: `Ref: ${data.reference}`,
+        status: "Pending",
+      };
       onSubmit(newRes);
+    } catch {
+      setSubmitError("Network error — could not reach the server.");
+    } finally {
       setSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -158,7 +198,7 @@ export default function NewReservation({ onBack, onSubmit }: NewReservationProps
                 <input
                   type="date"
                   value={reservationDate}
-                  onChange={(e) => setReservationDate(e.target.value)}
+                  onChange={(e) => { setReservationDate(e.target.value); setTimeError(""); }}
                   className="w-full h-11 pl-3 pr-10 bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:border-olive-600 focus:bg-white text-farm-text font-medium"
                 />
                 <Calendar className="w-4 h-4 text-zinc-400 absolute right-3 pointer-events-none" />
@@ -167,22 +207,61 @@ export default function NewReservation({ onBack, onSubmit }: NewReservationProps
 
             <div className="flex flex-col">
               <label className="text-farm-text-muted font-semibold mb-1">Reservation Time</label>
-              <div className="relative">
-                <select
-                  value={reservationTime}
-                  onChange={(e) => setReservationTime(e.target.value)}
-                  className="w-full h-11 pl-3 pr-10 bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:border-olive-600 focus:bg-white text-farm-text font-medium appearance-none"
-                >
-                  <option value="12:00 PM">12:00 PM</option>
-                  <option value="1:30 PM">1:30 PM</option>
-                  <option value="3:00 PM">3:00 PM</option>
-                  <option value="7:00 PM">7:00 PM</option>
-                  <option value="8:30 PM">8:30 PM</option>
-                  <option value="9:00 PM">9:00 PM</option>
-                  <option value="9:15 PM">9:15 PM</option>
-                </select>
-                <Clock className="w-4 h-4 text-zinc-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <div className="flex items-center gap-2">
+                {/* Hour */}
+                <div className="flex flex-col items-center">
+                  <input
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={timeHour}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value);
+                      if (!isNaN(v)) setTimeHour(Math.min(12, Math.max(1, v)));
+                    }}
+                    className="w-16 h-11 text-center border border-zinc-200 rounded-lg bg-zinc-50 text-farm-text font-bold text-base focus:outline-none focus:border-olive-600 focus:bg-white"
+                  />
+                  <span className="text-[9px] text-zinc-400 mt-0.5 uppercase tracking-wider">Hour</span>
+                </div>
+                <span className="font-bold text-farm-text text-2xl pb-4">:</span>
+                {/* Minute */}
+                <div className="flex flex-col items-center">
+                  <input
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={timeMinute.toString().padStart(2, '0')}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value);
+                      if (!isNaN(v)) setTimeMinute(Math.min(59, Math.max(0, v)));
+                    }}
+                    className="w-16 h-11 text-center border border-zinc-200 rounded-lg bg-zinc-50 text-farm-text font-bold text-base focus:outline-none focus:border-olive-600 focus:bg-white"
+                  />
+                  <span className="text-[9px] text-zinc-400 mt-0.5 uppercase tracking-wider">Min</span>
+                </div>
+                {/* AM / PM toggle */}
+                <div className="flex flex-col items-center pb-4">
+                  <div className="flex border border-zinc-200 rounded-lg overflow-hidden bg-zinc-50">
+                    {(['AM', 'PM'] as const).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => { setTimePeriod(p); setTimeError(""); }}
+                        className={`w-12 h-11 font-bold text-sm transition-colors cursor-pointer ${
+                          timePeriod === p
+                            ? 'bg-olive-700 text-white'
+                            : 'text-farm-text-muted hover:bg-zinc-100'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
+              {timeError && (
+                <p className="text-xs text-red-600 mt-1 font-sans">{timeError}</p>
+              )}
             </div>
 
             <div className="flex items-center justify-between pt-2">
@@ -216,23 +295,20 @@ export default function NewReservation({ onBack, onSubmit }: NewReservationProps
             SECTION SELECTION
           </span>
           <div className="grid grid-cols-2 gap-2 font-sans text-xs">
-            {sectionsList.map((sec) => {
-              const isActive = selectedSection === sec.code;
-              return (
-                <button
-                  key={sec.code}
-                  type="button"
-                  onClick={() => setSelectedSection(sec.code)}
-                  className={`py-3 rounded-lg font-bold border flex items-center justify-center transition-all cursor-pointer ${
-                    isActive 
-                      ? "bg-[#bae6fd] border-sky-300 text-sky-950 font-extrabold shadow-sm" 
-                      : "bg-zinc-50 border-zinc-200 text-farm-text-muted hover:border-zinc-300"
-                  }`}
-                >
-                  {sec.name}
-                </button>
-              );
-            })}
+            {seatingSections.map((sec) => (
+              <button
+                key={sec.value}
+                type="button"
+                onClick={() => setSelectedSeating(sec.value)}
+                className={`py-3 rounded-lg font-bold border flex items-center justify-center transition-all cursor-pointer ${
+                  selectedSeating === sec.value
+                    ? "bg-[#bae6fd] border-sky-300 text-sky-950 font-extrabold shadow-sm"
+                    : "bg-zinc-50 border-zinc-200 text-farm-text-muted hover:border-zinc-300"
+                }`}
+              >
+                {sec.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -265,6 +341,10 @@ export default function NewReservation({ onBack, onSubmit }: NewReservationProps
             <span className="text-farm-text-muted">Confirmation Status</span>
             <span className="font-bold text-sky-700 uppercase tracking-widest text-xs">Pending</span>
           </div>
+
+          {submitError && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 font-sans">{submitError}</p>
+          )}
 
           {/* Large Sky blue Confirm button */}
           <button

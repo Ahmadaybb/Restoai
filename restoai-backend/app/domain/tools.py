@@ -20,6 +20,7 @@ class ParseOrderIn(BaseModel):
 
 class ParseOrderOut(BaseModel):
     items: list[OrderItem] = Field(default_factory=list)
+    remove_phrases: list[str] = Field(default_factory=list)
     unresolved: list[str] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
 
@@ -52,6 +53,7 @@ class MenuCitation(BaseModel):
 class AnswerMenuQuestionIn(BaseModel):
     question: str
     language: Language
+    recent_turns: list[str] = Field(default_factory=list)
 
 
 class AnswerMenuQuestionOut(BaseModel):

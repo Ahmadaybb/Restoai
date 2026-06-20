@@ -1,20 +1,57 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# RestoAI Dispatcher UI
 
-# Run and deploy your AI Studio app
+Mobile-first dispatcher portal for the RestoAI Telegram ordering bot. Built with React + Vite + Tailwind CSS.
 
-This contains everything you need to run your app locally.
+## What it does
 
-View your app in AI Studio: https://ai.studio/apps/de17df2a-74f7-42b2-a665-5cdea6c1d9f7
+Dispatchers use this app on their phone to:
+- Monitor incoming Telegram orders in real time (auto-refresh every 30 s)
+- Advance orders through the kitchen/delivery workflow with one tap
+- Cancel orders with a reason that is logged
+- Manage table reservations
+- Handle escalated Telegram conversations that the bot couldn't resolve
+- View customer feedback
 
-## Run Locally
+## Tabs
 
-**Prerequisites:**  Node.js
+| Tab | Icon | Description |
+|-----|------|-------------|
+| **Floor** | Grid | Live order queue split into 🚚 Delivery and 📦 Pickup sections. Each card shows customer name, order total, status badge, and inline action buttons. |
+| **Bookings** | Calendar | Table reservation list. Tap a reservation to mark Arrived or No Show. Use the + button to create a new reservation. |
+| **Escalations** | Shield | Telegram conversations the bot handed off to a human. A red dot in the header alerts the dispatcher when a new escalation arrives. |
+| **Settings** | Gear | Dispatcher profile, API health check, restaurant details, and links to the full menu and customer feedback. |
 
+## Order flow
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Delivery
+`Pending` → **Start Making** → `Being Made` → **On the Way** → `On the Way` → **Finish** → `Done`
+
+### Pickup
+`Pending` → **Start Making** → `Being Made` → **Finish** → `Done`
+
+Cancel (✕) is available at every active state. A reason is required.
+
+## Running locally
+
+```bash
+npm install
+npm run dev        # http://localhost:5173
+```
+
+Create `.env.local` and set:
+
+```
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+The API token (bearer) is entered on the login screen — it matches `DISPATCHER_API_TOKEN` in the backend `.env`.
+
+## Stack
+
+| | |
+|-|-|
+| Framework | React 18 + TypeScript |
+| Build tool | Vite |
+| Styling | Tailwind CSS v4 |
+| Icons | Lucide React |
+| API | Fetch against the RestoAI FastAPI backend |

@@ -122,6 +122,22 @@ async def get_last_turn(
     return _turn_to_domain(row) if row else None
 
 
+async def get_recent_turns(
+    session: AsyncSession,
+    conversation_id: uuid.UUID,
+    limit: int = 6,
+) -> list[Turn]:
+    """Return the most recent *limit* turns, oldest-first."""
+    result = await session.execute(
+        select(TurnORM)
+        .where(TurnORM.conversation_id == conversation_id)
+        .order_by(TurnORM.created_at.desc())
+        .limit(limit)
+    )
+    rows = result.scalars().all()
+    return [_turn_to_domain(r) for r in reversed(rows)]
+
+
 async def get_turns(
     session: AsyncSession, conversation_id: uuid.UUID
 ) -> list[Turn]:

@@ -68,7 +68,9 @@ async def persist_on_confirmation(
     customer: Customer,
     address: Address | None = None,
 ) -> None:
-    """FR-014: Persist phone/name/address on first confirmation."""
+    """FR-014: Persist phone/name on first confirmation.
+    Address is saved at address-capture time (attach_address with session),
+    so we do NOT insert it here to avoid UniqueViolation on saved/re-used addresses."""
     updates = {}
     if customer.phone_e164:
         updates["phone_e164"] = customer.phone_e164
@@ -76,11 +78,6 @@ async def persist_on_confirmation(
         updates["display_name"] = customer.display_name
     if updates:
         await customer_repo.update_fields(session, customer.id, **updates)
-    if address is not None and customer.phone_e164:
-        address_with_customer = address.model_copy(
-            update={"customer_id": customer.id}
-        )
-        await customer_repo.save_address(session, address_with_customer)
     await session.commit()
 
 

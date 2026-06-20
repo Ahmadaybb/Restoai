@@ -39,6 +39,16 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ dispatcher_name: dispatcherName() }),
     }),
+  markOutForDelivery: (id: string) =>
+    req(`/api/dispatcher/orders/${id}/out-for-delivery`, {
+      method: 'POST',
+      body: JSON.stringify({ dispatcher_name: dispatcherName() }),
+    }),
+  markDelivered: (id: string) =>
+    req(`/api/dispatcher/orders/${id}/delivered`, {
+      method: 'POST',
+      body: JSON.stringify({ dispatcher_name: dispatcherName() }),
+    }),
   cancelOrder: (id: string, reason: string) =>
     req(`/api/dispatcher/orders/${id}/cancel`, {
       method: 'POST',
@@ -53,6 +63,19 @@ export const api = {
     const qs = q.toString()
     return req(`/api/dispatcher/reservations${qs ? `?${qs}` : ''}`)
   },
+  createReservation: (body: {
+    name: string
+    phone: string
+    date: string
+    time: string
+    party_size: number
+    seating_preference: string
+    notes?: string
+  }) =>
+    req('/api/dispatcher/reservations', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 
   // Escalations
   getEscalations: () =>
@@ -74,4 +97,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ dispatcher_name: dispatcherName() }),
     }),
+
+  // Feedback
+  getFeedback: (sentiment?: string, status?: string) => {
+    const params = new URLSearchParams()
+    if (sentiment) params.set('sentiment', sentiment)
+    if (status) params.set('status', status)
+    const qs = params.toString()
+    return req(`/api/dispatcher/feedback${qs ? `?${qs}` : ''}`)
+  },
 }

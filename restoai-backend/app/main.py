@@ -18,6 +18,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.middleware import RequestIdMiddleware
 from app.db.engine import close_engine, init_engine
@@ -99,9 +100,17 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(title="RestoAI Backend", lifespan=lifespan)
 app.add_middleware(RequestIdMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 from app.api.dispatcher.escalations import router as dispatcher_escalations_router  # noqa: E402
+from app.api.dispatcher.feedback import router as dispatcher_feedback_router  # noqa: E402
 from app.api.dispatcher.orders import router as dispatcher_orders_router  # noqa: E402
 from app.api.dispatcher.reservations import router as dispatcher_reservations_router  # noqa: E402
 from app.api.health import router as health_router  # noqa: E402
@@ -111,4 +120,5 @@ app.include_router(health_router)
 app.include_router(dispatcher_orders_router)
 app.include_router(dispatcher_escalations_router)
 app.include_router(dispatcher_reservations_router)
+app.include_router(dispatcher_feedback_router)
 app.include_router(telegram_router)

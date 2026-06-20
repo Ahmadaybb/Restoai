@@ -1,4 +1,5 @@
 """CustomerRepository — Postgres-backed customer and address access."""
+import re
 import uuid
 from datetime import UTC, datetime
 
@@ -9,6 +10,16 @@ from sqlalchemy.orm import selectinload
 from app.db.models import Address as AddressORM
 from app.db.models import Customer as CustomerORM
 from app.domain.customer import Address, Customer
+
+_E164_RE = re.compile(r"^\+\d{8,15}$")
+
+
+def _safe_phone(raw: str | None) -> str | None:
+    """Return raw only if it is valid E.164, otherwise None.
+    Prevents a mis-saved phone from crashing customer loading."""
+    if raw is None:
+        return None
+    return raw if _E164_RE.match(raw) else None
 
 
 def _orm_address(row: AddressORM) -> Address:
@@ -28,7 +39,7 @@ def _orm_address(row: AddressORM) -> Address:
 def _orm_to_domain(row: CustomerORM) -> Customer:
     return Customer(
         id=row.id,
-        phone_e164=row.phone_e164,
+        phone_e164=_safe_phone(row.phone_e164),
         telegram_user_id=row.telegram_user_id,
         display_name=row.display_name,
         created_at=row.created_at,

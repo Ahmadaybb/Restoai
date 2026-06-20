@@ -11,7 +11,49 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
+  ExternalLink,
 } from "lucide-react";
+import { OrderAddress } from "../types";
+
+function mapsUrl(address: OrderAddress): string | null {
+  if (address.lat != null && address.lon != null) {
+    return `https://www.google.com/maps?q=${address.lat},${address.lon}`;
+  }
+  if (address.text_value && /^https?:\/\//i.test(address.text_value)) {
+    return address.text_value;
+  }
+  return null;
+}
+
+function AddressBlock({ address }: { address: OrderAddress }) {
+  const url = mapsUrl(address);
+  const label =
+    address.text_value ||
+    address.area_label ||
+    (address.lat != null ? `${address.lat}, ${address.lon}` : "Location shared");
+
+  if (url) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-start gap-2 mb-2 text-sm font-semibold text-[#0284c7] underline underline-offset-2 hover:text-[#0369a1] transition-colors font-sans"
+      >
+        <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+        <span className="break-all">{label}</span>
+        <ExternalLink className="w-3.5 h-3.5 mt-0.5 shrink-0 opacity-60" />
+      </a>
+    );
+  }
+
+  return (
+    <p className="text-sm text-farm-text leading-relaxed font-sans font-normal mb-2 flex items-start gap-2">
+      <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-farm-text-muted" />
+      {label}
+    </p>
+  );
+}
 
 interface OrderDetailsProps {
   orderId: string;
@@ -30,8 +72,8 @@ export default function OrderDetails({ orderId, onBack, onOrderMutated }: OrderD
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [posLoading, setPosLoading] = useState(false);
-  const [posError, setPosError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
@@ -57,25 +99,31 @@ export default function OrderDetails({ orderId, onBack, onOrderMutated }: OrderD
 
   useEffect(() => { fetchOrder(); }, [orderId]);
 
-  const handleEnterPOS = async () => {
+  const handleAdvanceState = async () => {
+    if (!order) return;
     if (!api.dispatcherName()) {
-      setPosError("Dispatcher name missing. Please sign out and sign in again.");
+      setActionError("Dispatcher name missing. Please sign out and sign in again.");
       return;
     }
-    setPosLoading(true);
-    setPosError(null);
+    setActionLoading(true);
+    setActionError(null);
     try {
-      const res = await api.enterInPos(orderId);
+      // Pickup orders skip "On the Way" — go directly from Being Made → Delivered
+      const res = order.state === "awaiting_dispatcher_review"
+        ? await api.enterInPos(orderId)
+        : order.state === "entered_in_pos" && order.fulfillment === "delivery"
+        ? await api.markOutForDelivery(orderId)
+        : await api.markDelivered(orderId);
       if (!res) return;
-      if (res.status === 409) { setPosError("This order can no longer be edited."); return; }
-      if (res.status === 400) { setPosError("Dispatcher name required."); return; }
-      if (!res.ok) { setPosError(`Error entering POS (${res.status})`); return; }
+      if (res.status === 409) { setActionError("This order can no longer be edited."); return; }
+      if (res.status === 400) { setActionError("Dispatcher name required."); return; }
+      if (!res.ok) { setActionError(`Error updating order (${res.status})`); return; }
       onOrderMutated();
       await fetchOrder();
     } catch {
-      setPosError("Network error.");
+      setActionError("Network error.");
     } finally {
-      setPosLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -108,9 +156,9 @@ export default function OrderDetails({ orderId, onBack, onOrderMutated }: OrderD
   const displayId = orderId.slice(0, 8);
 
   return (
-    <div id="order-details-screen" className="flex flex-col w-full h-full pb-24 overflow-y-auto">
+    <div id="order-details-screen" className="flex flex-col w-full h-full">
       {/* Top Nav */}
-      <div className="flex items-center justify-between border-b border-farm-border bg-white px-4 py-3 sticky top-0 z-50">
+      <div className="flex items-center justify-between border-b border-farm-border bg-white px-4 py-3 shrink-0">
         <button
           type="button"
           onClick={onBack}
@@ -125,9 +173,12 @@ export default function OrderDetails({ orderId, onBack, onOrderMutated }: OrderD
         <div className="w-5" />
       </div>
 
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto">
+
       {/* Loading */}
       {loading && (
-        <div className="flex-1 flex items-center justify-center text-farm-text-muted font-sans text-sm py-16">
+        <div className="flex items-center justify-center text-farm-text-muted font-sans text-sm py-16">
           <Loader2 className="w-5 h-5 animate-spin mr-2 text-olive-600" />
           Loading order...
         </div>
@@ -190,11 +241,12 @@ export default function OrderDetails({ orderId, onBack, onOrderMutated }: OrderD
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest leading-none mb-1">Status</span>
-                  <span className="text-xs font-extrabold text-[#0284c7] tracking-wider uppercase">
-                    {order.state === "awaiting_dispatcher_review"
-                      ? "Awaiting Review"
-                      : order.state === "entered_in_pos"
-                      ? "Entered in POS"
+                  <span className="text-xs font-extrabold tracking-wider uppercase"
+                    style={{ color: order.state === "awaiting_dispatcher_review" ? "#0284c7" : order.state === "entered_in_pos" ? "#d97706" : order.state === "out_for_delivery" ? "#059669" : order.state === "delivered" ? "#7c3aed" : "#71717a" }}>
+                    {order.state === "awaiting_dispatcher_review" ? "Pending"
+                      : order.state === "entered_in_pos" ? "Being Made"
+                      : order.state === "out_for_delivery" ? "On the Way"
+                      : order.state === "delivered" ? "Delivered"
                       : "Cancelled"}
                   </span>
                 </div>
@@ -215,55 +267,23 @@ export default function OrderDetails({ orderId, onBack, onOrderMutated }: OrderD
 
             {/* Delivery Address */}
             <div className="pt-4">
-              <span className="text-xs font-semibold text-farm-text-muted uppercase tracking-wider block mb-1">
+              <span className="text-xs font-semibold text-farm-text-muted uppercase tracking-wider block mb-2">
                 {order.fulfillment === "delivery" ? "Delivery Address" : "Pickup Location"}
               </span>
 
               {order.address ? (
                 <>
-                  <p className="text-sm text-farm-text leading-relaxed font-sans font-normal mb-2">
-                    {order.address.text_value ||
-                      order.address.area_label ||
-                      (order.address.lat != null ? `${order.address.lat}, ${order.address.lon}` : "Location provided")}
-                  </p>
+                  <AddressBlock address={order.address} />
                   {!order.address.in_zone && (
-                    <div className="mb-3 flex items-center gap-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 font-sans">
+                    <div className="mt-2 flex items-center gap-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 font-sans">
                       <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                       Address is outside the delivery zone.
                     </div>
                   )}
                 </>
               ) : (
-                <p className="text-sm text-farm-text-muted font-sans italic mb-4">No address provided.</p>
+                <p className="text-sm text-farm-text-muted font-sans italic mb-2">No address provided.</p>
               )}
-
-              {/* Static Beirut map decoration */}
-              <div className="relative w-full h-[155px] bg-[#dfded8] border border-farm-border rounded-lg overflow-hidden flex items-center justify-center">
-                <svg className="absolute inset-0 w-full h-full text-zinc-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 155" preserveAspectRatio="none">
-                  <path d="M 0 0 L 120 0 Q 140 30 150 45 T 180 75 Q 195 90 190 110 T 160 155 L 0 155 Z" fill="#ebeced" />
-                  <path d="M120 0 L150 155 M150 0 L180 155 M190 0 L210 155" stroke="#fcfcfc" strokeWidth="4" strokeLinecap="round" />
-                  <path d="M0 45 L400 45 M0 75 L400 75 M0 110 L400 110" stroke="#fcfcfc" strokeWidth="4" strokeLinecap="round" />
-                  <rect x="230" y="10" width="30" height="25" rx="3" fill="#eeeeeb" />
-                  <rect x="280" y="10" width="45" height="25" rx="3" fill="#eeeeeb" />
-                  <rect x="340" y="10" width="45" height="24" rx="3" fill="#eeeeeb" />
-                  <rect x="210" y="52" width="40" height="48" rx="3" fill="#eeeeeb" />
-                  <rect x="260" y="52" width="60" height="20" rx="3" fill="#eeeeeb" />
-                  <rect x="330" y="52" width="55" height="20" rx="3" fill="#eeeeeb" />
-                  <rect x="260" y="80" width="60" height="24" rx="3" fill="#eeeeeb" />
-                  <rect x="330" y="80" width="55" height="24" rx="3" fill="#eeeeeb" />
-                  <circle cx="195" cy="78" r="8" fill="#0284c7" fillOpacity="0.2" className="animate-pulse" />
-                  <circle cx="195" cy="78" r="4" fill="#0284c7" />
-                  <path d="M195 62 L198 67 L192 67 Z" fill="#0284c7" />
-                  <rect x="194" y="67" width="2" height="11" fill="#0284c7" />
-                  <text x="290" y="65" fontFamily="Inter" fontSize="7" fontWeight="bold" fill="#7d7e82" letterSpacing="0.1em">BEIRUT PORT</text>
-                  <text x="135" y="135" fontFamily="Inter" fontSize="6" fill="#1e293b" opacity="0.6">MEDITERRANEAN SEA</text>
-                </svg>
-                <div className="absolute top-[68px] left-[184px] transform -translate-x-1/2 -translate-y-full flex flex-col items-center">
-                  <div className="animate-bounce">
-                    <span className="text-3xl filter drop-shadow">📍</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -316,14 +336,16 @@ export default function OrderDetails({ orderId, onBack, onOrderMutated }: OrderD
             </div>
           )}
 
-          {/* POS action error */}
-          {posError && (
+          {/* Action error */}
+          {actionError && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 font-sans">
-              {posError}
+              {actionError}
             </div>
           )}
         </div>
       )}
+
+      </div>{/* end scrollable body */}
 
       {/* Cancel Confirmation Modal */}
       {showCancelModal && (
@@ -370,45 +392,92 @@ export default function OrderDetails({ orderId, onBack, onOrderMutated }: OrderD
         </div>
       )}
 
-      {/* Sticky Bottom Actions */}
+      {/* Bottom Actions */}
       {!loading && order && (
-        <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto h-18 bg-white border-t border-farm-border flex items-center justify-around px-4 gap-2 z-50">
-          <button
-            type="button"
-            id="btn-cancel"
-            onClick={() => { setShowCancelModal(true); setCancelReason(""); setCancelError(null); }}
-            disabled={order.state !== "awaiting_dispatcher_review"}
-            className="flex-1 max-w-[110px] h-11 border border-red-200 hover:bg-red-50 font-semibold text-xs rounded-lg flex items-center justify-center gap-1.5 text-red-600 cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <XCircle className="w-3.5 h-3.5" />
-            Cancel
-          </button>
+        <div className="bg-white border-t border-farm-border px-4 py-3 flex items-center gap-2 shrink-0">
+          {/* Cancel X — visible and active for ALL active states */}
+          {(order.state === "awaiting_dispatcher_review" ||
+            order.state === "entered_in_pos" ||
+            order.state === "out_for_delivery") && (
+            <button
+              type="button"
+              id="btn-cancel"
+              onClick={() => { setShowCancelModal(true); setCancelReason(""); setCancelError(null); }}
+              className="w-10 h-10 border border-red-200 hover:bg-red-50 rounded-lg flex items-center justify-center text-red-500 cursor-pointer transition-colors shrink-0"
+              title="Cancel order"
+            >
+              <XCircle className="w-4 h-4" />
+            </button>
+          )}
 
-          <button
-            type="button"
-            id="btn-pos-enter"
-            onClick={handleEnterPOS}
-            disabled={order.state !== "awaiting_dispatcher_review" || posLoading}
-            style={{
-              backgroundColor:
-                order.state === "entered_in_pos" ? "#446137" : "#0284c7",
-            }}
-            className="flex-1 h-11 hover:opacity-90 font-bold text-xs text-white rounded-lg flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {posLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Saving...
-              </>
-            ) : order.state === "entered_in_pos" ? (
-              <>
-                <CheckCircle className="w-4 h-4 text-white" /> Synced in POS
-              </>
-            ) : (
-              <>
-                <Check className="w-4 h-4 text-white" /> Enter in POS
-              </>
-            )}
-          </button>
+          {/* Pending → Start Making */}
+          {order.state === "awaiting_dispatcher_review" && (
+            <button
+              type="button"
+              id="btn-start-making"
+              onClick={handleAdvanceState}
+              disabled={actionLoading}
+              className="flex-1 h-10 bg-amber-500 hover:bg-amber-600 font-bold text-xs text-white rounded-lg flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              {actionLoading ? "Saving..." : "Start Making"}
+            </button>
+          )}
+
+          {/* Being Made + DELIVERY → On the Way */}
+          {order.state === "entered_in_pos" && order.fulfillment === "delivery" && (
+            <button
+              type="button"
+              id="btn-out-for-delivery"
+              onClick={handleAdvanceState}
+              disabled={actionLoading}
+              className="flex-1 h-10 bg-sky-600 hover:bg-sky-700 font-bold text-xs text-white rounded-lg flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+              {actionLoading ? "Saving..." : "On the Way"}
+            </button>
+          )}
+
+          {/* Being Made + PICKUP → Finish (skip On the Way) */}
+          {order.state === "entered_in_pos" && order.fulfillment === "pickup" && (
+            <button
+              type="button"
+              id="btn-finish-pickup"
+              onClick={handleAdvanceState}
+              disabled={actionLoading}
+              className="flex-1 h-10 bg-emerald-600 hover:bg-emerald-700 font-bold text-xs text-white rounded-lg flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+              {actionLoading ? "Saving..." : "Finish"}
+            </button>
+          )}
+
+          {/* On the Way → Finish (delivery only) */}
+          {order.state === "out_for_delivery" && (
+            <button
+              type="button"
+              id="btn-finish"
+              onClick={handleAdvanceState}
+              disabled={actionLoading}
+              className="flex-1 h-10 bg-emerald-600 hover:bg-emerald-700 font-bold text-xs text-white rounded-lg flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+              {actionLoading ? "Saving..." : "Finish"}
+            </button>
+          )}
+
+          {/* Final states */}
+          {order.state === "delivered" && (
+            <div className="flex-1 h-10 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-center gap-1.5 text-emerald-700 font-bold text-xs">
+              <CheckCircle className="w-4 h-4" /> Done
+            </div>
+          )}
+
+          {order.state === "cancelled" && (
+            <div className="flex-1 h-10 bg-zinc-100 border border-zinc-200 rounded-lg flex items-center justify-center gap-1.5 text-zinc-500 font-bold text-xs">
+              <XCircle className="w-4 h-4" /> Cancelled
+            </div>
+          )}
         </div>
       )}
     </div>

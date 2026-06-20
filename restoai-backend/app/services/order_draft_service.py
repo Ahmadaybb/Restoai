@@ -150,12 +150,30 @@ async def select_saved_address(
     return await attach_address(customer_id, address)
 
 
+async def remove_item(customer_id: UUID, menu_item_id: str) -> OrderDraft:
+    """Remove a specific item from the draft by menu_item_id."""
+    draft = await get_draft(customer_id)
+    if draft is None:
+        return OrderDraft(customer_id=customer_id)
+    draft.items = [i for i in draft.items if i.menu_item_id != menu_item_id]
+    await draft_store.put_draft(customer_id, _serialize(draft))
+    return draft
+
+
+async def clear_items(customer_id: UUID) -> None:
+    """Wipe the draft entirely so the customer can start a fresh order."""
+    try:
+        await draft_store.delete_draft(customer_id)
+    except Exception:
+        pass
+
+
 async def reopen_for_edit(customer_id: UUID, draft_id: UUID) -> OrderDraft:
-    """FR-018: Clear items so the customer re-states their order; preserve fulfillment/address."""
+    """FR-018: Keep the existing cart intact so the customer can add/change one item."""
     draft = await get_draft(customer_id)
     if draft is None or draft.id != draft_id:
         draft = OrderDraft(customer_id=customer_id)
-    draft = draft.model_copy(update={"items": []})
+    # Do NOT clear items — preserve the full cart so the user can type "add X" or "remove Y"
     await draft_store.put_draft(customer_id, _serialize(draft))
     return draft
 
